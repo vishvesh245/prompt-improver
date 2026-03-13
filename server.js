@@ -99,13 +99,31 @@ async function improvePrompt({ prompt, apiKey, provider, model }) {
   const resolvedModel = model || PROVIDERS[providerKey]?.defaultModel;
   const { text, usage } = await adapter(prompt, apiKey, resolvedModel);
 
-  const cleaned = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
+  // Extract JSON robustly — strip markdown fences, find the JSON object
+  let cleaned = text.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
+
+  // If the model added preamble text before the JSON, extract just the { ... }
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  }
 
   let parsed;
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    throw new Error("Engine returned malformed JSON. Please retry.");
+    // Last resort: try to fix common issues (trailing commas, unescaped newlines in strings)
+    try {
+      const fixed = cleaned
+        .replace(/,\s*([}\]])/g, "$1")           // trailing commas
+        .replace(/[\r\n]+/g, " ")                 // newlines that break strings
+        .replace(/\t/g, " ");                     // tabs
+      parsed = JSON.parse(fixed);
+    } catch {
+      console.error("Failed to parse LLM response:", text.slice(0, 500));
+      throw new Error("Engine returned malformed JSON. Please retry.");
+    }
   }
 
   parsed.meta = { provider: providerKey, model: resolvedModel, input_tokens: usage.input, output_tokens: usage.output };
