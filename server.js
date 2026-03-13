@@ -21,65 +21,27 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // ─────────────────────────────────────────────
 
 const PROVIDERS = {
-  anthropic: { label: "Anthropic", defaultModel: "claude-sonnet-4-20250514", keyPrefix: "sk-ant-" },
-  openai:    { label: "OpenAI",    defaultModel: "gpt-4o",                   keyPrefix: "sk-"     },
-  google:    { label: "Google",    defaultModel: "gemini-1.5-pro",            keyPrefix: "AIza"    },
+  anthropic: { label: "Anthropic", defaultModel: "claude-haiku-4-5-20251001", keyPrefix: "sk-ant-" },
+  openai:    { label: "OpenAI",    defaultModel: "gpt-4o-mini",               keyPrefix: "sk-"     },
+  google:    { label: "Google",    defaultModel: "gemini-2.0-flash",           keyPrefix: "AIza"    },
 };
 
 // ─────────────────────────────────────────────
 // 2. SYSTEM PROMPT
 // ─────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are an expert prompt engineer with deep knowledge of how LLMs work.
-When given a prompt, analyze it and return ONLY a valid JSON object — no markdown, no backticks, no preamble.
+const SYSTEM_PROMPT = `Expert prompt engineer. Return ONLY valid JSON — no markdown, no backticks.
 
-Return exactly this structure:
-{
-  "score": <integer 1-10>,
-  "issues": [{"text": "<specific, plain-language observation>", "severity": "high|medium|low"}],
-  "improved": "<the rewritten prompt>",
-  "changes": [<string — what changed and why>],
-  "tips": [<string — 1-2 tips specific to this prompt type>],
-  "token_estimate": {
-    "original_tokens": <integer>,
-    "improved_tokens": <integer>
-  }
-}
+Structure:
+{"score":<1-10>,"issues":[{"text":"<specific observation>","severity":"high|medium|low"}],"improved":"<rewritten prompt>","changes":["<what changed>"],"tips":["<1-2 tips>"]}
 
-Issue format rules — CRITICAL:
-  Each issue must be an object with "text" and "severity".
-  - "text" must be a specific, plain-language observation (NOT generic labels).
-    BAD:  "No context", "Too vague", "Missing constraints"
-    GOOD: "Didn't say who it's for", "No budget or price range", "Didn't set length or depth"
-  - "severity" must be one of:
-    "high"   — This really hurts the prompt (missing critical info, completely vague)
-    "medium" — Would noticeably improve the response (missing format, audience, scope)
-    "low"    — Nice to have (optional extras, minor polish)
+Issues: specific plain language, NOT generic. BAD:"No context" GOOD:"Didn't say who it's for"
+Severity: high=missing critical info, medium=missing format/audience/scope, low=nice-to-have
 
-Scoring guide:
-  1-3  → Vague, no context, no intent, or too short to act on (e.g. "help", "make it better", "a")
-  4-6  → Clear intent and defined output type, but missing role, format, or constraints.
-         A prompt like "write a blog post about X" or "give me 5 tips for Y" belongs here.
-         Do not score these below 4.
-  7-8  → Clear intent, good context, role or format present, only minor gaps remain
-  9-10 → Specific, role set, format defined, constraints clear, ready to use as-is
+Score: 1-3=vague/no context, 4-6=clear intent but missing role/format/constraints (don't underscore), 7-8=good with minor gaps, 9-10=ready to use
+Issue limits: score 7+: max 2, score 4-6: max 3, score 1-3: max 5. No hypothetical extras.
 
-Issue flagging rules — HARD LIMITS, no exceptions:
-  - Prompts scoring 7 or higher: return MAXIMUM 2 issues. Hard limit.
-  - Prompts scoring 4-6: return MAXIMUM 3 issues. Most impactful only.
-  - Prompts scoring 1-3: return MAXIMUM 5 issues. Core problems only.
-  - Never flag hypothetical improvements or optional extras the user did not ask for.
-
-Improvement rules:
-  - Add a role if helpful ("You are a senior...")
-  - Specify output format (JSON, bullet list, paragraph, table, etc.)
-  - Add constraints (length, tone, audience, language)
-  - Break complex asks into explicit steps
-  - Remove ambiguity — never leave the model guessing
-  - NEVER change the user's original intent
-  - If the user explicitly specifies a language (e.g. "en español", "in French"),
-    preserve that exact language instruction in the improved prompt
-  - Concise and targeted beats long and exhaustive`;
+Improve: add role if helpful, specify format, add constraints (length/tone/audience), break complex asks into steps, remove ambiguity, NEVER change intent, preserve language instructions. Concise beats exhaustive.`;
 
 // ─────────────────────────────────────────────
 // 3. PROVIDER ADAPTERS
@@ -88,7 +50,7 @@ Improvement rules:
 async function callAnthropic(userPrompt, apiKey, model) {
   const client = new Anthropic({ apiKey });
   const res = await client.messages.create({
-    model, max_tokens: 1500,
+    model, max_tokens: 800,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: `Analyze and improve this prompt:\n\n${userPrompt}` }],
   });
@@ -99,7 +61,7 @@ async function callAnthropic(userPrompt, apiKey, model) {
 async function callOpenAI(userPrompt, apiKey, model) {
   const client = new OpenAI({ apiKey });
   const res = await client.chat.completions.create({
-    model, max_tokens: 1500,
+    model, max_tokens: 800,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user",   content: `Analyze and improve this prompt:\n\n${userPrompt}` },
