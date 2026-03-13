@@ -50,7 +50,7 @@ Improve: add role if helpful, specify format, add constraints (length/tone/audie
 async function callAnthropic(userPrompt, apiKey, model) {
   const client = new Anthropic({ apiKey });
   const res = await client.messages.create({
-    model, max_tokens: 500,
+    model, max_tokens: 500, temperature: 0,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: `Analyze and improve this prompt:\n\n${userPrompt}` }],
   });
@@ -61,7 +61,7 @@ async function callAnthropic(userPrompt, apiKey, model) {
 async function callOpenAI(userPrompt, apiKey, model) {
   const client = new OpenAI({ apiKey });
   const res = await client.chat.completions.create({
-    model, max_tokens: 500,
+    model, max_tokens: 500, temperature: 0,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user",   content: `Analyze and improve this prompt:\n\n${userPrompt}` },
@@ -73,7 +73,7 @@ async function callOpenAI(userPrompt, apiKey, model) {
 
 async function callGoogle(userPrompt, apiKey, model) {
   const genAI = new GoogleGenerativeAI(apiKey);
-  const geminiModel = genAI.getGenerativeModel({ model });
+  const geminiModel = genAI.getGenerativeModel({ model, generationConfig: { temperature: 0 } });
   const res = await geminiModel.generateContent(
     `${SYSTEM_PROMPT}\n\nAnalyze and improve this prompt:\n\n${userPrompt}`
   );
