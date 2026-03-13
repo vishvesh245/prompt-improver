@@ -204,7 +204,7 @@ app.post("/improve-free", freeLimiter, async (req, res) => {
       prompt: parsed.data.prompt,
       apiKey: serverKey,
       provider: "anthropic",
-      model: "claude-haiku-4-20250514",  // cheapest model for free tier
+      model: "claude-haiku-4-5-20251001",  // cheapest model for free tier
     });
     return res.json({ success: true, data: result });
   } catch (err) {
