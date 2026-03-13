@@ -32,11 +32,11 @@ const PROVIDERS = {
 
 const SYSTEM_PROMPT = `Expert prompt engineer. Return ONLY valid JSON — no markdown, no backticks.
 
-Structure:
-{"score":<1-10>,"issues":[{"text":"<specific observation>","severity":"high|medium|low"}],"improved":"<rewritten prompt>","changes":["<what changed>"],"tips":["<1-2 tips>"]}
+{"score":<1-10>,"issues":[{"text":"<specific observation>","severity":"high|medium|low"}],"improved":"<rewritten prompt>"}
 
-Issues: specific plain language, NOT generic. BAD:"No context" GOOD:"Didn't say who it's for"
+Issues: specific plain language. BAD:"No context" GOOD:"Didn't say who it's for"
 Severity: high=missing critical info, medium=missing format/audience/scope, low=nice-to-have
+NEVER flag typos or spelling mistakes — ignore them entirely.
 
 Score: 1-3=vague/no context, 4-6=clear intent but missing role/format/constraints (don't underscore), 7-8=good with minor gaps, 9-10=ready to use
 Issue limits: score 7+: max 2, score 4-6: max 3, score 1-3: max 5. No hypothetical extras.
@@ -50,7 +50,7 @@ Improve: add role if helpful, specify format, add constraints (length/tone/audie
 async function callAnthropic(userPrompt, apiKey, model) {
   const client = new Anthropic({ apiKey });
   const res = await client.messages.create({
-    model, max_tokens: 800,
+    model, max_tokens: 500,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: `Analyze and improve this prompt:\n\n${userPrompt}` }],
   });
@@ -61,7 +61,7 @@ async function callAnthropic(userPrompt, apiKey, model) {
 async function callOpenAI(userPrompt, apiKey, model) {
   const client = new OpenAI({ apiKey });
   const res = await client.chat.completions.create({
-    model, max_tokens: 800,
+    model, max_tokens: 500,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user",   content: `Analyze and improve this prompt:\n\n${userPrompt}` },
