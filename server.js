@@ -36,7 +36,7 @@ When given a prompt, analyze it and return ONLY a valid JSON object — no markd
 Return exactly this structure:
 {
   "score": <integer 1-10>,
-  "issues": [<string>],
+  "issues": [{"text": "<specific, plain-language observation>", "severity": "high|medium|low"}],
   "improved": "<the rewritten prompt>",
   "changes": [<string — what changed and why>],
   "tips": [<string — 1-2 tips specific to this prompt type>],
@@ -45,6 +45,16 @@ Return exactly this structure:
     "improved_tokens": <integer>
   }
 }
+
+Issue format rules — CRITICAL:
+  Each issue must be an object with "text" and "severity".
+  - "text" must be a specific, plain-language observation (NOT generic labels).
+    BAD:  "No context", "Too vague", "Missing constraints"
+    GOOD: "Didn't say who it's for", "No budget or price range", "Didn't set length or depth"
+  - "severity" must be one of:
+    "high"   — This really hurts the prompt (missing critical info, completely vague)
+    "medium" — Would noticeably improve the response (missing format, audience, scope)
+    "low"    — Nice to have (optional extras, minor polish)
 
 Scoring guide:
   1-3  → Vague, no context, no intent, or too short to act on (e.g. "help", "make it better", "a")
