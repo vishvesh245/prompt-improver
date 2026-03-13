@@ -215,23 +215,56 @@ function createMcpServer() {
 }
 
 // Remote HTTP MCP — Claude Desktop connects to /mcp
+const sessions = new Map();  // sessionId → transport
+
 app.get("/mcp", (req, res) => {
   res.json({ name: "prompt-improver", version: "1.0.0", description: "Analyzes and improves prompts for any AI model" });
 });
 
 app.post("/mcp", async (req, res) => {
   try {
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID() });
+    const sessionId = req.headers["mcp-session-id"];
+
+    // Existing session — route to it
+    if (sessionId && sessions.has(sessionId)) {
+      const transport = sessions.get(sessionId);
+      await transport.handleRequest(req, res, req.body);
+      return;
+    }
+
+    // New session — create transport + server
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => randomUUID(),
+    });
+
+    transport.onclose = () => {
+      const sid = transport.sessionId;
+      if (sid) sessions.delete(sid);
+    };
+
     const mcpServer = createMcpServer();
     await mcpServer.connect(transport);
     await transport.handleRequest(req, res, req.body);
+
+    // Store session after handling (sessionId is set after initialize)
+    if (transport.sessionId) {
+      sessions.set(transport.sessionId, transport);
+    }
   } catch (err) {
     console.error("MCP error:", err);
     if (!res.headersSent) res.status(500).json({ error: err.message });
   }
 });
 
-app.delete("/mcp", (req, res) => res.status(200).end());
+app.delete("/mcp", (req, res) => {
+  const sessionId = req.headers["mcp-session-id"];
+  if (sessionId && sessions.has(sessionId)) {
+    const transport = sessions.get(sessionId);
+    transport.close?.();
+    sessions.delete(sessionId);
+  }
+  res.status(200).end();
+});
 
 // Local stdio MCP — for power users running locally
 if (process.argv.includes("--mcp")) {
