@@ -185,6 +185,33 @@ app.post("/improve", async (req, res) => {
   }
 });
 
+// Free tier endpoint — uses server's own API key (for Chrome extension)
+const freeLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { error: "Too many free requests. Please add your own API key." } });
+
+const FreeRequestSchema = z.object({
+  prompt: z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),
+});
+
+app.post("/improve-free", freeLimiter, async (req, res) => {
+  const serverKey = process.env.ANTHROPIC_API_KEY;
+  if (!serverKey) return res.status(503).json({ error: "Free tier is not configured on this server." });
+
+  const parsed = FreeRequestSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
+
+  try {
+    const result = await improvePrompt({
+      prompt: parsed.data.prompt,
+      apiKey: serverKey,
+      provider: "anthropic",
+      model: "claude-haiku-4-20250514",  // cheapest model for free tier
+    });
+    return res.json({ success: true, data: result });
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Something went wrong." });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`REST API → http://localhost:${PORT}`));
 
