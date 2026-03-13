@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prompt Improver</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f8f7f4; color: #1a1a1a; min-height: 100vh; }
+  .hero { background: #1a1a2e; color: #fff; padding: 48px 24px 40px; text-align: center; }
+  .hero h1 { font-size: 32px; font-weight: 700; margin-bottom: 10px; }
+  .hero p { font-size: 16px; color: #a0a0c0; max-width: 480px; margin: 0 auto 28px; line-height: 1.6; }
+  .hero-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .badge { font-size: 12px; padding: 4px 12px; border-radius: 20px; border: 1px solid #ffffff22; color: #c0c0e0; }
+  .main { max-width: 680px; margin: 0 auto; padding: 32px 20px; }
+  .card { background: #fff; border: 1px solid #e8e6e0; border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+  .card-title { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+  .provider-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .provider-btn { padding: 7px 16px; border-radius: 20px; border: 1.5px solid #e0ddd8; background: transparent; font-size: 13px; cursor: pointer; color: #555; transition: all 0.15s; }
+  .provider-btn.active { border-color: #6366f1; background: #6366f108; color: #6366f1; font-weight: 500; }
+  .key-row input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #e0ddd8; font-size: 13px; color: #1a1a1a; background: #fafaf8; }
+  .key-row input:focus { outline: none; border-color: #6366f1; }
+  textarea { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1.5px solid #e0ddd8; font-size: 14px; color: #1a1a1a; background: #fafaf8; resize: vertical; font-family: inherit; line-height: 1.6; }
+  textarea:focus { outline: none; border-color: #6366f1; }
+  .improve-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 14px; }
+  .improve-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .score-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .score-num { font-size: 42px; font-weight: 700; line-height: 1; }
+  .score-bar { height: 8px; background: #eee; border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .score-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
+  .issues-list, .changes-list, .tips-list { display: flex; flex-direction: column; gap: 6px; }
+  .issue-item { font-size: 13px; color: #c2410c; display: flex; gap: 8px; padding: 8px 12px; background: #fff7ed; border-radius: 8px; }
+  .improved-box { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 14px; position: relative; }
+  .improved-text { font-size: 14px; color: #14532d; line-height: 1.65; white-space: pre-wrap; }
+  .copy-btn { position: absolute; top: 10px; right: 10px; padding: 4px 12px; border-radius: 8px; border: 1px solid #86efac; background: #fff; color: #15803d; font-size: 12px; cursor: pointer; font-weight: 500; }
+  .change-item { font-size: 13px; color: #555; display: flex; gap: 8px; }
+  .tip-item { font-size: 13px; color: #5b21b6; display: flex; gap: 8px; padding: 8px 12px; background: #faf5ff; border-radius: 8px; }
+  .error-box { background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 14px; color: #991b1b; font-size: 13px; }
+  .get-key { background: #f0f4ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 14px 16px; margin-top: 8px; }
+  .get-key p { font-size: 12px; color: #4338ca; margin-bottom: 8px; }
+  .get-key a { font-size: 12px; color: #6366f1; text-decoration: none; font-weight: 500; margin-right: 12px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>✨ Prompt Improver</h1>
+  <p>Paste any prompt. Get it back sharper, clearer, and more effective — instantly.</p>
+  <div class="hero-badges">
+    <span class="badge">Claude</span>
+    <span class="badge">ChatGPT</span>
+    <span class="badge">Gemini</span>
+    <span class="badge">Your API key — your cost</span>
+    <span class="badge">Free & open source</span>
+  </div>
+</div>
+<div class="main">
+  <div class="card">
+    <div class="card-title">Setup</div>
+    <div class="provider-row" id="providers"></div>
+    <div class="key-row" style="margin-bottom:6px">
+      <input type="password" id="api-key" placeholder="Paste your API key here"/>
+    </div>
+    <div class="get-key" id="get-key-links"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Your prompt</div>
+    <textarea id="prompt-input" rows="5" placeholder="e.g. write a blog post about AI"></textarea>
+    <button class="improve-btn" id="improve-btn" onclick="improve()">⚡ Improve my prompt</button>
+  </div>
+  <div id="results"></div>
+</div>
+<script>
+const PROVIDERS = {
+  anthropic: { label: "Claude (Anthropic)", hint: "Starts with sk-ant-", link: "https://console.anthropic.com/settings/keys" },
+  openai:    { label: "ChatGPT (OpenAI)",   hint: "Starts with sk-",     link: "https://platform.openai.com/api-keys" },
+  google:    { label: "Gemini (Google)",    hint: "Starts with AIza",    link: "https://aistudio.google.com/app/apikey" },
+};
+let provider = "anthropic";
+const provRow = document.getElementById("providers");
+Object.entries(PROVIDERS).forEach(([key, p]) => {
+  const b = document.createElement("button");
+  b.className = "provider-btn" + (key === provider ? " active" : "");
+  b.textContent = p.label;
+  b.onclick = () => { provider = key; document.querySelectorAll(".provider-btn").forEach(x => x.classList.remove("active")); b.classList.add("active"); renderLinks(); };
+  provRow.appendChild(b);
+});
+function renderLinks() {
+  const p = PROVIDERS[provider];
+  document.getElementById("api-key").placeholder = p.hint;
+  document.getElementById("get-key-links").innerHTML = `<p>Don't have a key? Get one free:</p><a href="${p.link}" target="_blank">Get ${p.label} key →</a>`;
+}
+renderLinks();
+function scoreColor(s) { return s >= 8 ? "#22c55e" : s >= 5 ? "#f59e0b" : "#ef4444"; }
+function scoreLabel(s) { return s >= 8 ? "Great" : s >= 5 ? "Decent" : "Needs work"; }
+async function improve() {
+  const key = document.getElementById("api-key").value.trim();
+  const prompt = document.getElementById("prompt-input").value.trim();
+  if (!key || !prompt) return;
+  const btn = document.getElementById("improve-btn");
+  btn.disabled = true; btn.textContent = "Analyzing...";
+  document.getElementById("results").innerHTML = `<div style="text-align:center;padding:32px;color:#888">Analyzing your prompt...</div>`;
+  try {
+    const res = await fetch("/improve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, api_key: key, provider })
+    });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error);
+    const r = json.data;
+    const col = scoreColor(r.score);
+    document.getElementById("results").innerHTML = `
+      <div class="card">
+        <div class="card-title">Score</div>
+        <div class="score-row">
+          <div class="score-num" style="color:${col}">${r.score}</div>
+          <div style="flex:1"><div style="font-size:13px;color:#888;margin-bottom:6px">${scoreLabel(r.score)} · ${r.score}/10</div>
+          <div class="score-bar"><div class="score-fill" style="width:${r.score*10}%;background:${col}"></div></div></div>
+        </div>
+        ${r.issues?.length ? `<div class="card-title" style="margin-top:12px">Issues</div><div class="issues-list">${r.issues.map(i=>`<div class="issue-item"><span>⚠</span><span>${i}</span></div>`).join("")}</div>` : ""}
+      </div>
+      <div class="card">
+        <div class="card-title">Improved prompt</div>
+        <div class="improved-box">
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('imp').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',2000)">Copy</button>
+          <div class="improved-text" id="imp">${r.improved}</div>
+        </div>
+      </div>
+      ${r.changes?.length ? `<div class="card"><div class="card-title">What changed</div><div class="changes-list">${r.changes.map(c=>`<div class="change-item"><span style="color:#6366f1">→</span><span>${c}</span></div>`).join("")}</div></div>` : ""}
+      ${r.tips?.length ? `<div class="card"><div class="card-title">Tips</div><div class="tips-list">${r.tips.map(t=>`<div class="tip-item"><span>💡</span><span>${t}</span></div>`).join("")}</div></div>` : ""}
+    `;
+  } catch(e) {
+    document.getElementById("results").innerHTML = `<div class="error-box">Error: ${e.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = "⚡ Improve my prompt";
+}
+</script>
+</body>
+</html>
