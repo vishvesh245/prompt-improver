@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Prompt Improver</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: #1a1a2e;
+      background: #fafafa;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 48px 40px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      color: #1a1a2e;
+    }
+    p, li {
+      font-size: 15px;
+      color: #374151;
+      margin-bottom: 12px;
+    }
+    ul {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    li { margin-bottom: 6px; }
+    strong { color: #1a1a2e; }
+    .highlight {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .highlight p { margin-bottom: 0; color: #166534; font-weight: 500; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    td { color: #374151; }
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    a { color: #7c3aed; }
+    @media (max-width: 600px) {
+      .container { padding: 28px 20px; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">Prompt Improver — Chrome Extension &middot; Last updated: March 14, 2026</p>
+
+    <div class="highlight">
+      <p>We do not sell, share, or monetize your data. Your prompts are analyzed in real-time and never stored on our servers.</p>
+    </div>
+
+    <h2>1. What This Extension Does</h2>
+    <p>Prompt Improver analyzes the text you type into AI chat interfaces (ChatGPT, Claude, and Gemini) and provides a quality score with suggestions for improvement. The analysis is performed by an AI model via our secure backend server.</p>
+
+    <h2>2. Data We Process</h2>
+    <table>
+      <tr>
+        <th>Data</th>
+        <th>Purpose</th>
+        <th>Stored?</th>
+      </tr>
+      <tr>
+        <td><strong>Prompt text</strong></td>
+        <td>Sent to our server for AI-powered analysis</td>
+        <td>Not stored. Processed in real-time and discarded immediately after the response is returned.</td>
+      </tr>
+      <tr>
+        <td><strong>API key</strong> (if provided)</td>
+        <td>Forwarded to the chosen AI provider (Anthropic, OpenAI, or Google) for authentication</td>
+        <td>Stored locally in your browser only (<code>chrome.storage.local</code>). Transmitted over HTTPS to our server, which forwards it to the AI provider. Never stored server-side.</td>
+      </tr>
+      <tr>
+        <td><strong>Free usage count</strong></td>
+        <td>Tracks how many free analyses you've used (limit: 3)</td>
+        <td>Stored locally in your browser only.</td>
+      </tr>
+    </table>
+
+    <h2>3. How Data Flows</h2>
+    <p>When you click the Prompt Improver badge or it analyzes your prompt:</p>
+    <ul>
+      <li>Your prompt text is sent over <strong>HTTPS</strong> to our backend server (<code>prompt-improver-production.up.railway.app</code>).</li>
+      <li>Our server forwards the prompt to the AI provider (Anthropic, OpenAI, or Google) for analysis.</li>
+      <li>If you provided your own API key, it is included in the request to authenticate with the AI provider.</li>
+      <li>The AI provider's response (score, issues, improved prompt) is returned to your browser.</li>
+      <li><strong>No data is logged, cached, or stored on our server at any point.</strong></li>
+    </ul>
+
+    <h2>4. Data We Do NOT Collect</h2>
+    <ul>
+      <li>We do not collect personal information (name, email, etc.)</li>
+      <li>We do not track browsing history or page content beyond the text you type in AI chat inputs</li>
+      <li>We do not use cookies, analytics, or tracking pixels</li>
+      <li>We do not sell or share any data with third parties</li>
+      <li>We do not serve advertisements</li>
+    </ul>
+
+    <h2>5. Third-Party Services</h2>
+    <p>Depending on your configuration, your prompt text may be processed by one of the following AI providers:</p>
+    <ul>
+      <li><strong>Anthropic</strong> — <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
+      <li><strong>OpenAI</strong> — <a href="https://openai.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
+      <li><strong>Google</strong> — <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
+    </ul>
+    <p>Our backend server is hosted on <strong>Railway</strong> (<a href="https://railway.app/legal/privacy" target="_blank" rel="noopener">Railway Privacy Policy</a>).</p>
+
+    <h2>6. Permissions Used</h2>
+    <table>
+      <tr>
+        <th>Permission</th>
+        <th>Why It's Needed</th>
+      </tr>
+      <tr>
+        <td><code>storage</code></td>
+        <td>Store your API key and usage count locally in your browser</td>
+      </tr>
+      <tr>
+        <td>Host access: <code>claude.ai</code>, <code>chatgpt.com</code>, <code>chat.openai.com</code>, <code>gemini.google.com</code></td>
+        <td>Inject the prompt analysis UI (badge and popup) into AI chat sites</td>
+      </tr>
+      <tr>
+        <td>Host access: <code>prompt-improver-production.up.railway.app</code></td>
+        <td>Send prompts to our backend API for analysis</td>
+      </tr>
+    </table>
+
+    <h2>7. Data Retention &amp; Deletion</h2>
+    <ul>
+      <li><strong>Server-side:</strong> No data is retained. Prompts and API keys are processed in memory and discarded immediately.</li>
+      <li><strong>Browser-side:</strong> Your API key and usage count are stored in <code>chrome.storage.local</code>. To delete:
+        <ul>
+          <li>Click the extension icon &rarr; "Remove Key", or</li>
+          <li>Uninstall the extension (all local data is automatically removed)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>8. Security</h2>
+    <ul>
+      <li>All data is transmitted over <strong>HTTPS</strong> (TLS encryption)</li>
+      <li>API keys are stored in Chrome's secure extension storage, isolated from web pages</li>
+      <li>The extension only runs on the 4 specific AI chat domains listed above</li>
+      <li>No remote code execution — all extension code is bundled locally</li>
+    </ul>
+
+    <h2>9. Children's Privacy</h2>
+    <p>This extension is not directed at children under 13. We do not knowingly collect data from children.</p>
+
+    <h2>10. Changes to This Policy</h2>
+    <p>If we make material changes, we will update the "Last updated" date at the top. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+
+    <h2>11. Contact</h2>
+    <p>If you have questions about this privacy policy, please open an issue on our <a href="https://github.com/vishvesh245/prompt-improver" target="_blank" rel="noopener">GitHub repository</a>.</p>
+
+    <div class="footer">
+      <p>&copy; 2026 Prompt Improver. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
