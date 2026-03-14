@@ -232,21 +232,9 @@ PromptPulse is built with privacy as a core principle:
 
 ---
 
-## Roadmap
-
-- [ ] More platforms (Perplexity, Copilot, Poe)
-- [ ] Prompt templates library
-- [ ] Team/org dashboards
-- [ ] Prompt history with before/after comparisons
-- [ ] Firefox extension
-- [ ] Custom scoring rubrics
-
----
 
 ## License
 
 MIT
 
 ---
-
-Built by [Vishvesh Pandya](https://github.com/vishvesh245)
