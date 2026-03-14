@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PromptPulse — How We Calculate Your Savings</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    line-height: 1.7;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .back-link {
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: #c9d1d9; }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e6edf3;
+  }
+  .header .badge {
+    background: #21262d;
+    border: 1px solid #30363d;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b949e;
+  }
+
+  /* ── Content ── */
+  .content {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+
+  .intro {
+    font-size: 16px;
+    color: #8b949e;
+    margin-bottom: 48px;
+    padding: 20px 24px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    border-left: 3px solid #3fb950;
+  }
+  .intro strong { color: #c9d1d9; }
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 16px;
+    margin-top: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    background: #21262d;
+    color: #8b949e;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-top: 24px;
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin-bottom: 16px;
+    color: #8b949e;
+  }
+  p strong { color: #c9d1d9; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 16px 0 24px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8b949e;
+    background: #0d1117;
+    border-bottom: 1px solid #21262d;
+  }
+  td {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #21262d;
+  }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { color: #e6edf3; font-weight: 500; }
+  .green { color: #3fb950; }
+  .red { color: #f87171; }
+  .muted { color: #484f58; font-style: italic; }
+
+  /* ── Code/Formula blocks ── */
+  .formula {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #e6edf3;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .formula .comment { color: #484f58; }
+  .formula .keyword { color: #ff7b72; }
+  .formula .number { color: #79c0ff; }
+  .formula .string { color: #a5d6ff; }
+  .formula .fn { color: #7dd3fc; }
+
+  /* ── Callout boxes ── */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+  .callout-conservative {
+    background: rgba(63, 185, 80, 0.06);
+    border: 1px solid rgba(63, 185, 80, 0.15);
+    border-left: 3px solid #3fb950;
+  }
+  .callout-honest {
+    background: rgba(248, 113, 113, 0.06);
+    border: 1px solid rgba(248, 113, 113, 0.15);
+    border-left: 3px solid #f87171;
+  }
+  .callout-label {
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .callout-conservative .callout-label { color: #3fb950; }
+  .callout-honest .callout-label { color: #f87171; }
+
+  /* ── Example box ── */
+  .example {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+  }
+  .example-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e6edf3;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .example-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .example-row:last-child { border-bottom: none; }
+  .example-row.total {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #30363d;
+    font-weight: 700;
+    color: #e6edf3;
+  }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    height: 1px;
+    background: #21262d;
+    margin: 48px 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    font-size: 12px;
+    color: #484f58;
+  }
+  .footer a { color: #58a6ff; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  <h1>How We Calculate Your Savings</h1>
+  <span class="badge">Full Methodology</span>
+</div>
+
+<div class="content">
+
+  <div class="intro">
+    <strong>We believe in radical transparency.</strong> Every number on your dashboard is calculated using the formulas below. We've deliberately chosen conservative assumptions — we'd rather under-promise than overstate your savings.
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">1</span> What Counts as a "Saving"</h2>
+
+  <p>We <strong>only count savings</strong> when ALL three conditions are met:</p>
+
+  <table>
+    <tr><td>✓ You applied the improvement</td><td>Clicked "Use this prompt"</td></tr>
+    <tr><td>✓ Original score was ≤ 7</td><td>Score 8+ was already good — no savings to claim</td></tr>
+    <tr><td>✓ New score is higher</td><td>If our suggestion didn't help, we don't take credit</td></tr>
+  </table>
+
+  <div class="callout callout-honest">
+    <div class="callout-label">What we DON'T count</div>
+    Prompts you analyzed but didn't apply. Prompts that already scored 8+. Prompts where our improvement didn't raise the score. We only claim credit for actual, measurable improvements you chose to use.
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">2</span> Follow-ups Saved</h2>
+
+  <p>The core idea: a vague prompt → vague response → you follow up to clarify. A better prompt → better first response → fewer follow-ups needed.</p>
+
+  <p>But <strong>not every bad prompt leads to follow-ups.</strong> Sometimes the AI guesses right even with a vague prompt. So we use <strong>probability-weighted estimates</strong>:</p>
+
+  <table>
+    <thead>
+      <tr><th>Original Score</th><th>% Chance of Follow-ups</th><th>If needed, how many?</th><th>Expected (weighted)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1–2</td><td>90%</td><td>3–4 rounds</td><td><strong>3.15</strong></td></tr>
+      <tr><td>3</td><td>75%</td><td>2–3 rounds</td><td><strong>1.88</strong></td></tr>
+      <tr><td>4</td><td>60%</td><td>~2 rounds</td><td><strong>1.20</strong></td></tr>
+      <tr><td>5</td><td>45%</td><td>1–2 rounds</td><td><strong>0.68</strong></td></tr>
+      <tr><td>6</td><td>25%</td><td>~1 round</td><td><strong>0.25</strong></td></tr>
+      <tr><td>7</td><td>10%</td><td>~1 round</td><td><strong>0.10</strong></td></tr>
+      <tr><td>8–10</td><td class="muted">Not eligible</td><td class="muted">—</td><td class="muted">0</td></tr>
+    </tbody>
+  </table>
+
+  <div class="formula">
+    <span class="comment">// Follow-ups saved = expected follow-ups at original score</span><br/>
+    <span class="comment">//                  − expected follow-ups at improved score</span><br/><br/>
+    <span class="keyword">followups_saved</span> = <span class="fn">expected</span>(<span class="string">original_score</span>) − <span class="fn">expected</span>(<span class="string">improved_score</span>)<br/><br/>
+    <span class="comment">// Example: score 4 → 8</span><br/>
+    <span class="keyword">followups_saved</span> = <span class="number">1.20</span> − <span class="number">0.00</span> = <span class="number">1.20</span>
+  </div>
+
+  <div class="callout callout-conservative">
+    <div class="callout-label">Why this is conservative</div>
+    Real-world follow-up counts are often higher — complex tasks can need 5-8 rounds with a bad prompt. We cap at 3.15 for the worst prompts (score 1-2) and apply probability discounts at every level.
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">3</span> Time Saved</h2>
+
+  <p>Each avoided follow-up round saves you time across three activities:</p>
+
+  <table>
+    <thead>
+      <tr><th>Activity</th><th>Time</th><th>Why this number</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Read the wrong response</td><td>30 sec</td><td>Skim a medium response, realize it's off</td></tr>
+      <tr><td>Think + type a follow-up</td><td>45 sec</td><td>Rephrase, add context, be more specific</td></tr>
+      <tr><td>Wait for new AI response</td><td>15 sec</td><td>Average generation time</td></tr>
+      <tr><td><strong>Total per round</strong></td><td><strong>90 sec</strong></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <div class="formula">
+    <span class="keyword">time_saved</span> = <span class="keyword">followups_saved</span> × <span class="number">90</span> seconds
+  </div>
+
+  <div class="callout callout-conservative">
+    <div class="callout-label">Why 90 seconds is conservative</div>
+    Most people spend 2-5 minutes per follow-up round in practice — especially for code, essays, or complex analysis. We use the low-end estimate. We don't count cognitive switching cost or frustration.
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">4</span> Money Saved</h2>
+
+  <p>Each avoided follow-up saves tokens. We estimate <strong>580 input tokens</strong> (your message + conversation context) and <strong>600 output tokens</strong> (AI response) per round.</p>
+
+  <h3>Token costs by platform</h3>
+
+  <table>
+    <thead>
+      <tr><th>Platform</th><th>Model</th><th>Input $/1M</th><th>Output $/1M</th><th>Cost per follow-up</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ChatGPT</td><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td><strong>$0.0075</strong></td></tr>
+      <tr><td>Claude</td><td>Sonnet 3.5</td><td>$3.00</td><td>$15.00</td><td><strong>$0.0107</strong></td></tr>
+      <tr><td>Gemini</td><td>1.5 Pro</td><td>$1.25</td><td>$5.00</td><td><strong>$0.0037</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="formula">
+    <span class="keyword">money_saved</span> = <span class="keyword">followups_saved</span> × <span class="fn">cost_per_followup</span>(<span class="string">platform</span>)
+  </div>
+
+  <p><strong>Note for free-tier users:</strong> If you use ChatGPT/Claude/Gemini's free plan, you're not paying per-token directly. We show this as "equivalent API cost" — it represents the computational resources you're saving, which translates to faster responses and less throttling.</p>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">5</span> PromptPulse Cost</h2>
+
+  <p>PromptPulse uses <strong>Claude Haiku</strong> — one of the cheapest AI models available — for all analyses.</p>
+
+  <table>
+    <thead>
+      <tr><th>Component</th><th>Tokens</th><th>Price per 1M</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Input (system prompt + your prompt)</td><td>~400</td><td>$0.25</td><td>$0.0001</td></tr>
+      <tr><td>Output (score + issues + improved)</td><td>~300</td><td>$1.25</td><td>$0.000375</td></tr>
+      <tr><td><strong>Total per analysis</strong></td><td></td><td></td><td><strong>~$0.0005</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-honest">
+    <div class="callout-label">We count ALL analyses, not just successful ones</div>
+    Even if you don't apply an improvement, you still paid for the analysis. Our cost calculation includes every single analysis — not just the ones that led to savings. This keeps the ROI honest.
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">6</span> Net Savings</h2>
+
+  <div class="formula">
+    <span class="keyword">net_savings</span> = <span class="keyword">money_saved</span> − <span class="keyword">promptpulse_cost</span>
+  </div>
+
+  <p>Simple subtraction. If you're on PromptPulse's free tier, your cost is $0 — so net savings = gross savings.</p>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2><span class="num">7</span> Worked Example</h2>
+
+  <div class="example">
+    <div class="example-title">📋 Real scenario: 1 week of usage</div>
+    <div class="example-row"><span>Total prompts analyzed</span><span>50</span></div>
+    <div class="example-row"><span>Improvements applied (eligible)</span><span>30</span></div>
+    <div class="example-row"><span>Average original score</span><span>4.5</span></div>
+    <div class="example-row"><span>Average improved score</span><span>8.2</span></div>
+    <div class="example-row"><span>Follow-ups saved (probability-weighted)</span><span>~33</span></div>
+    <div class="example-row"><span>Time saved (33 × 90 sec)</span><span>~50 min</span></div>
+    <div class="example-row"><span>Money saved (ChatGPT, 33 × $0.0075)</span><span class="green">$0.25</span></div>
+    <div class="example-row"><span>PromptPulse cost (50 × $0.0005)</span><span class="red">−$0.025</span></div>
+    <div class="example-row total"><span>Net savings</span><span class="green">$0.22</span></div>
+  </div>
+
+  <p>The dollar savings are modest — and we're transparent about that. <strong>The real value is time:</strong> 50 minutes of not going back-and-forth with an AI that misunderstood you.</p>
+
+  <hr/>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <h2>All Assumptions in One Place</h2>
+
+  <table>
+    <thead>
+      <tr><th>Assumption</th><th>Value</th><th>Bias</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Follow-up probability (score 1-2)</td><td>90%</td><td>Conservative ↓</td></tr>
+      <tr><td>Follow-up probability (score 5)</td><td>45%</td><td>Conservative ↓</td></tr>
+      <tr><td>Time per follow-up round</td><td>90 sec</td><td>Very conservative ↓</td></tr>
+      <tr><td>Tokens per follow-up (input)</td><td>580</td><td>Conservative ↓</td></tr>
+      <tr><td>Tokens per follow-up (output)</td><td>600</td><td>Conservative ↓</td></tr>
+      <tr><td>PromptPulse tokens (input)</td><td>400</td><td>Midpoint</td></tr>
+      <tr><td>PromptPulse tokens (output)</td><td>300</td><td>Midpoint</td></tr>
+      <tr><td>Only count applied + score ≤ 7</td><td>—</td><td>Conservative ↓</td></tr>
+      <tr><td>Count ALL analyses for cost</td><td>—</td><td>Honest</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-conservative">
+    <div class="callout-label">Our philosophy</div>
+    Every assumption in this model is biased toward <strong>underestimating your savings</strong>. Real follow-up times are typically 2-5 minutes, not 90 seconds. Real follow-up counts for score-3 prompts are often 4-5 rounds, not 1.88. We'd rather you see $0.22 saved and think "that seems right" than see $2.00 saved and think "that seems inflated."
+  </div>
+
+</div>
+
+<div class="footer">
+  PromptPulse — Grammarly for your AI prompts<br/>
+  Questions? <a href="https://github.com/vishvesh245/prompt-improver/issues">Open an issue on GitHub</a>
+</div>
+
+</body>
+</html>

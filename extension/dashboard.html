@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PromptPulse — Your Savings Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 20px; height: 20px; }
+  .header h1 {
+    font-size: 18px; font-weight: 700; color: #e6edf3;
+  }
+  .header .badge {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #38bdf8;
+  }
+
+  /* ── Main content ── */
+  .main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 40px;
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h2 { font-size: 22px; color: #e6edf3; margin-bottom: 8px; }
+  .empty-state p { color: #8b949e; max-width: 400px; margin: 0 auto; }
+
+  /* ── Hero stats row ── */
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .hero-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .hero-card-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .hero-card-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: #e6edf3;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-card-value .unit {
+    font-size: 14px;
+    font-weight: 500;
+    color: #8b949e;
+    margin-left: 4px;
+  }
+  .hero-card-sub {
+    font-size: 12px;
+    color: #8b949e;
+  }
+  .hero-accent { color: #38bdf8; }
+  .hero-green { color: #3fb950; }
+  .hero-yellow { color: #d29922; }
+
+  /* ── Section ── */
+  .section {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e6edf3;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Score improvement ── */
+  .score-improve-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .score-box {
+    text-align: center;
+    min-width: 100px;
+  }
+  .score-box-num {
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .score-box-num .sub {
+    font-size: 16px;
+    font-weight: 500;
+    color: #8b949e;
+  }
+  .score-box-label {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 4px;
+  }
+  .score-arrow {
+    font-size: 24px;
+    color: #3fb950;
+  }
+  .score-delta {
+    background: rgba(63, 185, 80, 0.1);
+    border: 1px solid rgba(63, 185, 80, 0.2);
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: center;
+  }
+  .score-delta-num {
+    font-size: 24px;
+    font-weight: 800;
+    color: #3fb950;
+    line-height: 1;
+  }
+  .score-delta-label {
+    font-size: 11px;
+    color: #3fb950;
+    font-weight: 600;
+  }
+
+  /* ── ROI breakdown ── */
+  .roi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .roi-item {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .roi-item-value {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .roi-item-label {
+    font-size: 12px;
+    color: #8b949e;
+  }
+
+  /* ── Comparison table ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0d1117;
+    border: 1px solid #21262d;
+  }
+  .compare-table th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8b949e;
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+  }
+  .compare-table td {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #21262d;
+    color: #c9d1d9;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table td:first-child { font-weight: 500; color: #e6edf3; }
+  .green { color: #3fb950; }
+  .red { color: #f87171; }
+  .muted { color: #484f58; }
+
+  /* ── Activity feed ── */
+  .activity-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .activity-dot.applied { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,0.3); }
+  .activity-dot.skipped { background: #484f58; }
+  .activity-platform {
+    background: #21262d;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #8b949e;
+    flex-shrink: 0;
+  }
+  .activity-score {
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .activity-time {
+    color: #484f58;
+    font-size: 11px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ── Footer CTA ── */
+  .footer-cta {
+    text-align: center;
+    padding: 24px;
+    margin-top: 8px;
+  }
+  .footer-cta a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .footer-cta a:hover { text-decoration: underline; }
+  .footer-cta .sep {
+    color: #30363d;
+    margin: 0 12px;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero-stats { grid-template-columns: repeat(2, 1fr); }
+    .roi-grid { grid-template-columns: 1fr; }
+    .main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">
+      <svg viewBox="0 0 48 48" fill="none"><polyline points="8,26 16,26 20,14 24,36 28,20 32,26 40,26" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1>PromptPulse</h1>
+    <span class="badge">Savings Dashboard</span>
+  </div>
+</div>
+
+<div class="main" id="main-content">
+  <!-- JS will populate -->
+</div>
+
+<script src="dashboard.js"></script>
+
+</body>
+</html>

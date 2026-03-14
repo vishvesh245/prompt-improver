@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Get Your API Key — PromptPulse</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #161b22;
+    border-bottom: 1px solid #21262d;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .header-logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .header-logo svg { width: 22px; height: 22px; }
+  .header h1 {
+    font-size: 18px; font-weight: 700; color: #e6edf3;
+  }
+  .header .badge {
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #38bdf8;
+  }
+
+  /* ── Main ── */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  .intro {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .intro h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #e6edf3;
+    margin-bottom: 8px;
+  }
+  .intro p {
+    font-size: 15px;
+    color: #8b949e;
+  }
+
+  /* ── Provider Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 32px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    background: transparent;
+    color: #8b949e;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-right: 1px solid #21262d;
+    position: relative;
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover {
+    background: rgba(56, 189, 248, 0.04);
+    color: #c9d1d9;
+  }
+  .tab.active {
+    background: rgba(56, 189, 248, 0.08);
+    color: #38bdf8;
+  }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: #38bdf8;
+    border-radius: 2px 2px 0 0;
+  }
+  .tab-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .tab-dot.anthropic { background: #d97757; box-shadow: 0 0 6px rgba(217,119,87,0.3); }
+  .tab-dot.openai { background: #10a37f; box-shadow: 0 0 6px rgba(16,163,127,0.3); }
+  .tab-dot.google { background: #4285f4; box-shadow: 0 0 6px rgba(66,133,244,0.3); }
+
+  /* ── Provider Sections ── */
+  .provider-section {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .provider-section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── Info Card ── */
+  .info-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #21262d;
+  }
+  .provider-logo {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .provider-logo.anthropic { background: rgba(217,119,87,0.12); }
+  .provider-logo.openai { background: rgba(16,163,127,0.12); }
+  .provider-logo.google { background: rgba(66,133,244,0.12); }
+  .info-card-header h2 { font-size: 18px; font-weight: 700; color: #e6edf3; }
+  .model-tag {
+    font-size: 11px; padding: 3px 10px; border-radius: 6px;
+    background: #21262d; border: 1px solid #30363d;
+    color: #8b949e; margin-left: auto; font-weight: 600;
+  }
+
+  /* ── Steps ── */
+  .steps {
+    counter-reset: step;
+    list-style: none;
+  }
+  .step {
+    counter-increment: step;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .step:last-child { margin-bottom: 0; }
+  .step::before {
+    content: counter(step);
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step-content {
+    flex: 1;
+    padding-top: 4px;
+  }
+  .step-content p {
+    font-size: 14px;
+    color: #c9d1d9;
+  }
+  .step-content p strong { color: #e6edf3; }
+  .step-content a {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dashed rgba(56, 189, 248, 0.3);
+    transition: border-color 0.2s;
+  }
+  .step-content a:hover { border-bottom-color: #38bdf8; }
+  .step-content .note {
+    font-size: 12px;
+    color: #8b949e;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #0d1117;
+    border-radius: 8px;
+    border-left: 2px solid rgba(56, 189, 248, 0.3);
+  }
+  .step-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.06);
+    color: #38bdf8;
+  }
+
+  /* ── Key Format ── */
+  .key-format {
+    margin-top: 24px;
+    padding: 14px 16px;
+    background: rgba(63, 185, 80, 0.05);
+    border: 1px solid rgba(63, 185, 80, 0.12);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .key-format-icon { font-size: 16px; }
+  .key-format p { font-size: 13px; color: #8b949e; }
+  .key-format code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(63, 185, 80, 0.08);
+    color: #3fb950;
+  }
+
+  /* ── Pricing ── */
+  .pricing {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(210, 153, 34, 0.05);
+    border: 1px solid rgba(210, 153, 34, 0.12);
+    border-radius: 10px;
+  }
+  .pricing-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px; font-weight: 700; color: #d29922;
+  }
+  .pricing p {
+    font-size: 12px; color: #8b949e; line-height: 1.6;
+  }
+  .pricing p strong { color: #c9d1d9; }
+
+  /* ── Security ── */
+  .security {
+    margin-top: 32px;
+    text-align: center;
+    padding: 24px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+  }
+  .security-icon { font-size: 24px; margin-bottom: 8px; }
+  .security h3 {
+    font-size: 14px; font-weight: 700; margin-bottom: 6px; color: #e6edf3;
+  }
+  .security p {
+    font-size: 12px; color: #8b949e;
+    max-width: 440px; margin: 0 auto;
+  }
+
+  /* ── Back link ── */
+  .back-link {
+    display: block; text-align: center; margin-top: 24px;
+    font-size: 13px; color: #8b949e; text-decoration: none;
+    font-weight: 500;
+  }
+  .back-link:hover { color: #38bdf8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 48 48" fill="none"><polyline points="8,26 16,26 20,14 24,36 28,20 32,26 40,26" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+  <h1>PromptPulse</h1>
+  <span class="badge">API Key Setup</span>
+</div>
+
+<div class="container">
+  <div class="intro">
+    <h2>Get Your API Key</h2>
+    <p>Follow the steps below for any provider. Takes ~2 minutes.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-provider="anthropic">
+      <span class="tab-dot anthropic"></span> Anthropic
+    </button>
+    <button class="tab" data-provider="openai">
+      <span class="tab-dot openai"></span> OpenAI
+    </button>
+    <button class="tab" data-provider="google">
+      <span class="tab-dot google"></span> Google
+    </button>
+  </div>
+
+  <!-- ═══════ ANTHROPIC ═══════ -->
+  <div class="provider-section active" id="section-anthropic">
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="provider-logo anthropic">🟠</div>
+        <h2>Anthropic (Claude)</h2>
+        <span class="model-tag">Claude Haiku / Sonnet</span>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <p>Go to <a href="https://console.anthropic.com/" target="_blank" rel="noopener">console.anthropic.com</a></p>
+            <div class="note">Create an account if you don't have one — it's free to sign up.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Click <strong>API Keys</strong> in the left sidebar.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Click <strong>"Create Key"</strong> and give it a name (e.g., "PromptPulse").</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Copy the key and paste it into PromptPulse.</p>
+            <div class="note">The key is only shown once — save it somewhere safe!</div>
+          </div>
+        </li>
+      </ol>
+      <div class="key-format">
+        <span class="key-format-icon">✅</span>
+        <p>Your key should start with <code>sk-ant-api03-...</code></p>
+      </div>
+      <div class="pricing">
+        <div class="pricing-header">💰 Cost estimate</div>
+        <p>PromptPulse uses Claude Haiku by default — one of the cheapest models. Each analysis costs roughly <strong>$0.001–$0.003</strong> (less than a penny). You'd need to run ~300 analyses to spend $1.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ OPENAI ═══════ -->
+  <div class="provider-section" id="section-openai">
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="provider-logo openai">🟢</div>
+        <h2>OpenAI (ChatGPT)</h2>
+        <span class="model-tag">GPT-4o mini</span>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <p>Go to <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com/api-keys</a></p>
+            <div class="note">You need an OpenAI Platform account (separate from ChatGPT Plus).</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Click <strong>"Create new secret key"</strong>.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Give it a name (e.g., "PromptPulse") and click <strong>Create</strong>.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Copy the key and paste it into PromptPulse.</p>
+            <div class="note">The key is only shown once — save it somewhere safe!</div>
+          </div>
+        </li>
+      </ol>
+      <div class="key-format">
+        <span class="key-format-icon">✅</span>
+        <p>Your key should start with <code>sk-...</code></p>
+      </div>
+      <div class="pricing">
+        <div class="pricing-header">💰 Cost estimate</div>
+        <p>PromptPulse uses GPT-4o mini — very affordable. Each analysis costs roughly <strong>$0.001–$0.003</strong>. You'd need ~300+ analyses to spend $1.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ GOOGLE ═══════ -->
+  <div class="provider-section" id="section-google">
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="provider-logo google">🔵</div>
+        <h2>Google (Gemini)</h2>
+        <span class="model-tag">Gemini Flash</span>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-content">
+            <p>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">aistudio.google.com/app/apikey</a></p>
+            <div class="note">Sign in with your Google account.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Click <strong>"Create API key"</strong>.</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Select a Google Cloud project (or let it create one for you).</p>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-content">
+            <p>Copy the key and paste it into PromptPulse.</p>
+          </div>
+        </li>
+      </ol>
+      <div class="key-format">
+        <span class="key-format-icon">✅</span>
+        <p>Your key should start with <code>AIza...</code></p>
+      </div>
+      <div class="pricing">
+        <div class="pricing-header">💰 Cost estimate</div>
+        <p>Google offers a <strong>free tier</strong> for Gemini API (up to 60 requests/minute). Beyond that, Gemini Flash is extremely cheap — roughly <strong>$0.0001 per analysis</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="security">
+    <div class="security-icon">🔒</div>
+    <h3>Your key stays private</h3>
+    <p>Your API key is stored locally in your browser and sent to our secure server over HTTPS for analysis. Your key is never stored on our servers — it is only used for the duration of each request.</p>
+  </div>
+
+  <a href="#" class="back-link" id="close-page">← Close this page</a>
+</div>
+
+<script src="api-key-help.js"></script>
+</body>
+</html>

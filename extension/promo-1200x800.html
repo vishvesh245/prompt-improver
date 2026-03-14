@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1200, height=800"/>
+<title>PromptPulse — Promotional Image</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 800px;
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Subtle gradient mesh background */
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+  }
+  .bg-glow-1 { width: 600px; height: 600px; background: #38bdf8; top: -200px; left: -100px; }
+  .bg-glow-2 { width: 500px; height: 500px; background: #0ea5e9; bottom: -200px; right: -100px; }
+  .bg-glow-3 { width: 300px; height: 300px; background: #4ade80; top: 200px; right: 200px; opacity: 0.08; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 60px 80px;
+    gap: 60px;
+  }
+
+  /* Left side — text */
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #38bdf8, #0284c7);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(56,189,248,0.3);
+  }
+  .logo-icon svg { width: 36px; height: 36px; }
+  .logo-text {
+    font-size: 36px;
+    font-weight: 900;
+    color: #e6edf3;
+    letter-spacing: -0.5px;
+  }
+
+  .tagline {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #e6edf3;
+    letter-spacing: -1px;
+  }
+  .tagline .highlight {
+    background: linear-gradient(135deg, #38bdf8, #4ade80);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    color: #8b949e;
+    line-height: 1.5;
+    max-width: 460px;
+  }
+
+  .platforms {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .platform-chip {
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 600;
+    background: #161b22;
+    border: 1px solid #21262d;
+    color: #c9d1d9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .platform-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dot-chatgpt { background: #10a37f; }
+  .dot-claude { background: #d97757; }
+  .dot-gemini { background: #4285f4; }
+
+  /* Right side — mockup card */
+  .right {
+    flex: 0 0 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Badge mockup */
+  .mock-badge {
+    align-self: flex-end;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px 8px 12px;
+    border-radius: 20px;
+    background: rgba(20, 20, 30, 0.9);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .mock-badge-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fbbf24;
+    box-shadow: 0 0 8px rgba(251,191,36,0.5);
+  }
+  .mock-badge-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* Popup card mockup */
+  .mock-popup {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+
+  .mock-popup-header {
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #21262d;
+  }
+  .mock-popup-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e6edf3;
+  }
+  .mock-popup-close {
+    width: 24px; height: 24px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    color: #484f58;
+    font-size: 14px;
+  }
+
+  .mock-popup-body {
+    padding: 20px;
+  }
+
+  .mock-score-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.12);
+    margin-bottom: 16px;
+  }
+  .mock-score-num {
+    font-size: 32px;
+    font-weight: 900;
+    color: #fbbf24;
+  }
+  .mock-score-num span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #8b949e;
+  }
+  .mock-score-right {
+    flex: 1;
+  }
+  .mock-score-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fbbf24;
+    margin-bottom: 6px;
+  }
+  .mock-score-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mock-score-fill {
+    height: 100%;
+    width: 50%;
+    background: #fbbf24;
+    border-radius: 3px;
+  }
+
+  .mock-issues {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mock-issue {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #c9d1d9;
+  }
+  .mock-issue-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .mock-issue-dot.red { background: #f87171; }
+  .mock-issue-dot.yellow { background: #fbbf24; }
+
+  .mock-divider {
+    height: 1px;
+    background: #21262d;
+    margin: 16px 0;
+  }
+
+  .mock-improved-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #38bdf8;
+    margin-bottom: 8px;
+  }
+  .mock-improved-text {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .mock-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .mock-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .mock-btn-primary {
+    background: rgba(56,189,248,0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56,189,248,0.25);
+  }
+  .mock-btn-secondary {
+    background: rgba(255,255,255,0.04);
+    color: #8b949e;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* Free badge */
+  .free-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b949e;
+    margin-top: 4px;
+  }
+  .free-label .count {
+    color: #38bdf8;
+  }
+</style>
+</head>
+<body>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <div class="container">
+    <!-- Left: branding + tagline -->
+    <div class="left">
+      <div class="logo-row">
+        <div class="logo-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="6,26 14,26 18,14 22,36 26,20 30,26 38,26" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="logo-text">PromptPulse</span>
+      </div>
+
+      <div class="tagline">
+        <span class="highlight">Grammarly</span><br/>
+        for your AI prompts
+      </div>
+
+      <div class="subtitle">
+        Score and improve your prompts in real-time. Works right inside ChatGPT, Claude, and Gemini.
+      </div>
+
+      <div class="platforms">
+        <div class="platform-chip"><span class="platform-dot dot-chatgpt"></span> ChatGPT</div>
+        <div class="platform-chip"><span class="platform-dot dot-claude"></span> Claude</div>
+        <div class="platform-chip"><span class="platform-dot dot-gemini"></span> Gemini</div>
+      </div>
+
+      <div class="free-label">
+        <span class="count">10 free analyses</span> &mdash; no API key needed
+      </div>
+    </div>
+
+    <!-- Right: popup mockup -->
+    <div class="right">
+      <div class="mock-badge">
+        <div class="mock-badge-dot"></div>
+        <span class="mock-badge-text">Good start &mdash; tap to improve</span>
+      </div>
+
+      <div class="mock-popup">
+        <div class="mock-popup-header">
+          <span class="mock-popup-title">&#10024; PromptPulse</span>
+          <div class="mock-popup-close">&times;</div>
+        </div>
+        <div class="mock-popup-body">
+          <div class="mock-score-banner">
+            <div class="mock-score-num">5<span>/10</span></div>
+            <div class="mock-score-right">
+              <div class="mock-score-label">Decent &mdash; room to improve</div>
+              <div class="mock-score-bar"><div class="mock-score-fill"></div></div>
+            </div>
+          </div>
+
+          <div class="mock-issues">
+            <div class="mock-issue"><span class="mock-issue-dot red"></span> No output format specified</div>
+            <div class="mock-issue"><span class="mock-issue-dot red"></span> Missing audience or expertise level</div>
+            <div class="mock-issue"><span class="mock-issue-dot yellow"></span> Could benefit from examples</div>
+          </div>
+
+          <div class="mock-divider"></div>
+
+          <div class="mock-improved-label">&#9889; Improved version</div>
+          <div class="mock-improved-text">
+            "As a senior developer, explain React hooks to a junior developer. Include a practical useState example with code, formatted as a step-by-step tutorial. Keep it under 300 words."
+          </div>
+
+          <div class="mock-btns">
+            <div class="mock-btn mock-btn-primary">&#10003; Use this prompt</div>
+            <div class="mock-btn mock-btn-secondary">Keep mine</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

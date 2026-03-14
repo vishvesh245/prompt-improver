@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, system-ui, sans-serif;
+    width: 340px;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 20px;
+  }
+
+  .header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  }
+  .header h1 { font-size: 16px; font-weight: 700; color: #e6edf3; }
+  .header .icon { font-size: 20px; }
+  .version { font-size: 11px; color: #484f58; margin-bottom: 20px; }
+
+  .status-card {
+    padding: 12px 14px; border-radius: 10px; margin-bottom: 16px;
+    font-size: 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .status-card.connected {
+    background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #4ade80;
+  }
+  .status-card.free {
+    background: rgba(56,189,248,0.08); border: 1px solid rgba(56,189,248,0.15); color: rgba(56,189,248,0.85);
+  }
+  .status-icon { font-size: 16px; }
+
+  .section-label {
+    font-size: 11px; font-weight: 600; color: #484f58;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .key-input {
+    width: 100%; padding: 10px 14px; border-radius: 10px; font-size: 13px;
+    background: rgba(255,255,255,0.04); border: 1px solid #21262d;
+    color: #c9d1d9; font-family: inherit; outline: none;
+    margin-bottom: 4px;
+  }
+  .key-input:focus { border-color: #388bfd; }
+  .key-input::placeholder { color: #484f58; }
+
+  .detected {
+    font-size: 11px; margin-bottom: 12px; min-height: 16px; padding: 2px 0;
+  }
+  .detected.ok { color: #4ade80; }
+  .detected.none { color: #484f58; }
+
+  .save-btn {
+    width: 100%; padding: 11px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    background: rgba(56,189,248,0.15); color: #38bdf8;
+    border: 1px solid rgba(56,189,248,0.25);
+    transition: opacity 0.15s; margin-bottom: 12px;
+  }
+  .save-btn:hover { opacity: 0.85; }
+  .save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .remove-btn {
+    width: 100%; padding: 8px; border-radius: 8px; border: none;
+    font-size: 12px; cursor: pointer; background: transparent;
+    color: #484f58;
+  }
+  .remove-btn:hover { color: #f87171; }
+
+  .help-link {
+    display: block;
+    text-align: center;
+    font-size: 12px;
+    color: #38bdf8;
+    text-decoration: none;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+  .help-link:hover { color: #7dd3fc; }
+
+  .stats {
+    margin-top: 16px; padding-top: 16px; border-top: 1px solid #21262d;
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; font-size: 12px;
+    padding: 4px 0; color: #8b949e;
+  }
+  .stat-row span:last-child { color: #c9d1d9; }
+
+  .dashboard-btn {
+    width: 100%; padding: 10px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    margin-top: 12px;
+    transition: opacity 0.15s;
+  }
+  .dashboard-btn:hover { opacity: 0.85; }
+
+  .mini-stats {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+  }
+  .mini-stat {
+    flex: 1;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+  }
+  .mini-stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #38bdf8;
+    line-height: 1;
+  }
+  .mini-stat-label {
+    font-size: 10px;
+    color: #8b949e;
+    margin-top: 2px;
+  }
+
+  .footer {
+    margin-top: 16px; padding-top: 12px; border-top: 1px solid #21262d;
+    text-align: center;
+  }
+  .footer a {
+    font-size: 11px; color: #8b949e; text-decoration: none;
+  }
+  .footer a:hover { color: #38bdf8; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <span class="icon">&#10024;</span>
+    <h1>PromptPulse</h1>
+  </div>
+  <div class="version">v1.0.0</div>
+
+  <div id="status-area"></div>
+
+  <div class="section-label">API Key</div>
+  <input type="password" class="key-input" id="key-input" placeholder="sk-ant-... or sk-... or AIza..." />
+  <div class="detected none" id="detected"></div>
+  <a class="help-link" id="help-link">🔑 How to get your API key →</a>
+  <button class="save-btn" id="save-btn">Save Key</button>
+  <button class="remove-btn" id="remove-btn" style="display:none;">Remove key & reset</button>
+
+  <div class="stats" id="stats-area"></div>
+
+  <div id="mini-stats-area"></div>
+  <button class="dashboard-btn" id="dashboard-btn">📊 View Savings Dashboard</button>
+
+  <div class="footer">
+    <a href="https://prompt-improver-production.up.railway.app" target="_blank">Web version</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://github.com/vishvesh245/prompt-improver" target="_blank">GitHub</a>
+    &nbsp;&middot;&nbsp;
+    <a href="https://vishvesh245.github.io/prompt-improver/privacy-policy.html" target="_blank">Privacy</a>
+  </div>
+
+<script src="popup.js"></script>
+</body>
+</html>

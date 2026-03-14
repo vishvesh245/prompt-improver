@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "PromptPulse — Grammarly for AI Prompts",
+  "version": "1.0.0",
+  "description": "Instantly score and improve your AI prompts — works on ChatGPT, Claude, and Gemini. Like Grammarly, but for prompts.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://prompt-improver-production.up.railway.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [{
+    "resources": [
+      "api-key-help.html", "api-key-help.js",
+      "dashboard.html", "dashboard.js",
+      "dashboard-methodology.html"
+    ],
+    "matches": [
+      "https://claude.ai/*",
+      "https://chat.openai.com/*",
+      "https://chatgpt.com/*",
+      "https://gemini.google.com/*"
+    ]
+  }]
+}
