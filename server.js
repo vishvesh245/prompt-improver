@@ -159,7 +159,7 @@ app.get("/models", (_, res) => res.json({ providers: PROVIDERS }));
 
 // ── Remote config (change without extension update) ──
 const CONFIG = {
-  freeLimit: 5,           // free analyses before key required
+  freeLimit: 30,          // free analyses before key required
   minPromptLength: 10,    // minimum chars to trigger analysis
 };
 app.get("/config", (_, res) => res.json(CONFIG));
