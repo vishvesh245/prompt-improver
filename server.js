@@ -157,6 +157,13 @@ app.use("/improve", limiter);
 app.get("/health", (_, res) => res.json({ status: "ok", providers: Object.keys(PROVIDERS) }));
 app.get("/models", (_, res) => res.json({ providers: PROVIDERS }));
 
+// ── Remote config (change without extension update) ──
+const CONFIG = {
+  freeLimit: 3,           // free analyses before key required
+  minPromptLength: 10,    // minimum chars to trigger analysis
+};
+app.get("/config", (_, res) => res.json(CONFIG));
+
 app.post("/improve", async (req, res) => {
   const parsed = RequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
