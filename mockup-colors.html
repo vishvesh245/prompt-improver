@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prompt Improver — Color Palette Options</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: #0a0a0a; color: #e0e0e0; }
+
+  /* Top controls */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #111; border-bottom: 1px solid #222;
+    display: flex; align-items: center; padding: 0 16px; height: 48px; gap: 8px;
+  }
+  .nav-group { display: flex; gap: 2px; background: #1a1a1a; border-radius: 10px; padding: 3px; }
+  .nav-btn {
+    padding: 7px 16px; border-radius: 8px; border: none; font-size: 12px;
+    font-weight: 500; cursor: pointer; color: #888; background: transparent; transition: all 0.15s;
+  }
+  .nav-btn.active { background: #2a2a2a; color: #fff; }
+  .nav-btn:hover:not(.active) { color: #ccc; }
+  .nav-sep { width: 1px; height: 24px; background: #333; margin: 0 12px; }
+  .nav-label { font-size: 11px; color: #555; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .view-label {
+    text-align: center; padding: 8px; font-size: 11px; color: #666;
+    background: #0f0f0f; border-bottom: 1px solid #1a1a1a;
+    letter-spacing: 0.04em;
+  }
+
+  .main { padding-top: 48px; }
+
+  /* Claude chat mock — just the input area */
+  .chat-mock {
+    max-width: 720px; margin: 0 auto; padding: 20px 24px;
+  }
+  .chat-mock-label {
+    font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 10px; font-weight: 600;
+  }
+
+  /* Previous messages */
+  .prev-msg { margin-bottom: 16px; }
+  .prev-msg .name { font-size: 11px; font-weight: 600; color: #6a6050; margin-bottom: 4px; }
+  .prev-msg.user .bubble { background: #3a3530; border-radius: 14px 14px 4px 14px; padding: 10px 14px; font-size: 13px; color: #d8d0c8; display: inline-block; }
+  .prev-msg.assistant .bubble { font-size: 13px; color: #a8a098; line-height: 1.6; }
+
+  /* Input box (Claude dark style) */
+  .input-box {
+    background: #352f28; border: 1px solid #4a4035; border-radius: 16px;
+    padding: 14px 18px; position: relative; min-height: 52px;
+  }
+  .input-text { font-size: 14px; color: #e8e0d8; line-height: 1.6; }
+  .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .input-footer span { font-size: 12px; color: #5a5048; }
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: none;
+    background: #d4a574; color: #1a1a1a; font-size: 15px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ===== BADGE BASE ===== */
+  .ext-badge {
+    position: absolute; top: -16px; right: 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-radius: 22px; padding: 6px 14px 6px 10px;
+    cursor: pointer; transition: all 0.2s; font-size: 12px; z-index: 10;
+  }
+  .ext-badge:hover { transform: translateY(-1px); }
+  .score-pill { font-weight: 700; border-radius: 12px; padding: 2px 8px; font-size: 11px; }
+  .badge-text { font-weight: 500; }
+
+  /* ===== POPUP BASE ===== */
+  .ext-popup {
+    position: absolute; bottom: calc(100% + 10px); right: 0;
+    width: 400px; border-radius: 16px; overflow: hidden; z-index: 100;
+    display: none;
+  }
+  .ext-popup.show { display: block; animation: popUp 0.2s ease-out; }
+  @keyframes popUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .popup-top { padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: center; }
+  .popup-top h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .popup-close { background: none; border: none; font-size: 20px; cursor: pointer; line-height: 1; }
+  .popup-content { padding: 0 18px 18px; }
+  .popup-score { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .popup-score-num { font-size: 36px; font-weight: 800; line-height: 1; }
+  .popup-score-num span { font-size: 14px; opacity: 0.5; }
+  .popup-score-detail { flex: 1; }
+  .popup-score-label { font-size: 12px; margin-bottom: 5px; }
+  .popup-bar { height: 5px; border-radius: 99px; overflow: hidden; }
+  .popup-bar-fill { height: 100%; border-radius: 99px; }
+  .popup-issue { font-size: 12px; padding: 7px 10px; border-radius: 8px; margin-bottom: 4px; display: flex; gap: 7px; }
+  .popup-issues { margin-bottom: 14px; }
+  .popup-improved { border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  .popup-improved-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .popup-improved-text { font-size: 13px; line-height: 1.65; }
+  .popup-btns { display: flex; gap: 8px; }
+  .popup-btn {
+    flex: 1; padding: 11px 14px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .popup-btn:hover { opacity: 0.85; }
+
+  /* ======================= */
+  /* PALETTE 1: PURPLE       */
+  /* ======================= */
+  .palette-purple .ext-badge { background: #1e1b2e; border: 1px solid #3a3558; box-shadow: 0 4px 20px rgba(99,80,200,0.15); }
+  .palette-purple .badge-text { color: #b0a8d0; }
+  .palette-purple .score-pill.mid { background: #f59e0b20; color: #fbbf24; }
+  .palette-purple .score-pill.high { background: #22c55e20; color: #4ade80; }
+  .palette-purple .ext-popup { background: #1e1b2e; border: 1px solid #302a50; box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .palette-purple .popup-top h3 { color: #d8d0f0; }
+  .palette-purple .popup-close { color: #665f88; }
+  .palette-purple .popup-score-num { color: #fbbf24; }
+  .palette-purple .popup-score-label { color: #8880a8; }
+  .palette-purple .popup-bar { background: #2a2648; }
+  .palette-purple .popup-bar-fill { background: #fbbf24; }
+  .palette-purple .popup-issue { background: #f59e0b0a; color: #fbbf24; }
+  .palette-purple .popup-improved { background: #0d2818; border: 1px solid #22c55e28; }
+  .palette-purple .popup-improved-label { color: #4ade80; }
+  .palette-purple .popup-improved-text { color: #a0dbb8; }
+  .palette-purple .popup-btn.primary { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+  .palette-purple .popup-btn.secondary { background: #2a2648; color: #9890b8; }
+
+  /* ======================= */
+  /* PALETTE 2: DARK GLASS   */
+  /* ======================= */
+  .palette-glass .ext-badge { background: rgba(30,30,40,0.85); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 24px rgba(0,0,0,0.3); backdrop-filter: blur(12px); }
+  .palette-glass .badge-text { color: #a0a0b0; }
+  .palette-glass .score-pill.mid { background: #f59e0b18; color: #fbbf24; }
+  .palette-glass .score-pill.high { background: #22c55e18; color: #4ade80; }
+  .palette-glass .ext-popup { background: rgba(22,22,32,0.92); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 20px 60px rgba(0,0,0,0.6); backdrop-filter: blur(16px); }
+  .palette-glass .popup-top h3 { color: #e0e0f0; }
+  .palette-glass .popup-close { color: #555568; }
+  .palette-glass .popup-score-num { color: #fbbf24; }
+  .palette-glass .popup-score-label { color: #78788a; }
+  .palette-glass .popup-bar { background: rgba(255,255,255,0.06); }
+  .palette-glass .popup-bar-fill { background: #fbbf24; }
+  .palette-glass .popup-issue { background: rgba(245,158,11,0.06); color: #fbbf24; }
+  .palette-glass .popup-improved { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); }
+  .palette-glass .popup-improved-label { color: #4ade80; }
+  .palette-glass .popup-improved-text { color: #a0dbb8; }
+  .palette-glass .popup-btn.primary { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+  .palette-glass .popup-btn.secondary { background: rgba(255,255,255,0.04); color: #888898; }
+
+  /* ======================= */
+  /* PALETTE 3: WARM EMBER   */
+  /* ======================= */
+  .palette-ember .ext-badge { background: #2a1f1a; border: 1px solid #4a3528; box-shadow: 0 4px 20px rgba(180,100,40,0.15); }
+  .palette-ember .badge-text { color: #c0a890; }
+  .palette-ember .score-pill.mid { background: #f59e0b20; color: #fbbf24; }
+  .palette-ember .score-pill.high { background: #22c55e20; color: #4ade80; }
+  .palette-ember .ext-popup { background: #231c16; border: 1px solid #3a2e22; box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .palette-ember .popup-top h3 { color: #e8ddd0; }
+  .palette-ember .popup-close { color: #6a5a48; }
+  .palette-ember .popup-score-num { color: #fbbf24; }
+  .palette-ember .popup-score-label { color: #8a7a68; }
+  .palette-ember .popup-bar { background: #3a2e22; }
+  .palette-ember .popup-bar-fill { background: #f59e0b; }
+  .palette-ember .popup-issue { background: #f59e0b08; color: #f0b060; }
+  .palette-ember .popup-improved { background: #1a2a18; border: 1px solid #3a6030; }
+  .palette-ember .popup-improved-label { color: #80c880; }
+  .palette-ember .popup-improved-text { color: #a0c8a0; }
+  .palette-ember .popup-btn.primary { background: linear-gradient(135deg, #d97706, #f59e0b); color: #1a1008; }
+  .palette-ember .popup-btn.secondary { background: #3a2e22; color: #a09080; }
+
+  /* ======================= */
+  /* PALETTE 4: OCEAN BLUE   */
+  /* ======================= */
+  .palette-ocean .ext-badge { background: #121a28; border: 1px solid #1e3050; box-shadow: 0 4px 20px rgba(40,100,200,0.15); }
+  .palette-ocean .badge-text { color: #80a8d0; }
+  .palette-ocean .score-pill.mid { background: #f59e0b20; color: #fbbf24; }
+  .palette-ocean .score-pill.high { background: #22c55e20; color: #4ade80; }
+  .palette-ocean .ext-popup { background: #0f1620; border: 1px solid #1a2a42; box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .palette-ocean .popup-top h3 { color: #c0d8f0; }
+  .palette-ocean .popup-close { color: #40608a; }
+  .palette-ocean .popup-score-num { color: #fbbf24; }
+  .palette-ocean .popup-score-label { color: #6080a0; }
+  .palette-ocean .popup-bar { background: #1a2a42; }
+  .palette-ocean .popup-bar-fill { background: #fbbf24; }
+  .palette-ocean .popup-issue { background: #f59e0b08; color: #fbbf24; }
+  .palette-ocean .popup-improved { background: #0a2018; border: 1px solid #1a4a30; }
+  .palette-ocean .popup-improved-label { color: #4ade80; }
+  .palette-ocean .popup-improved-text { color: #90d0a8; }
+  .palette-ocean .popup-btn.primary { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+  .palette-ocean .popup-btn.secondary { background: #1a2a42; color: #6090c0; }
+
+  /* ======================= */
+  /* PALETTE 5: MINIMAL      */
+  /* ======================= */
+  .palette-minimal .ext-badge { background: #1a1a1a; border: 1px solid #333; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  .palette-minimal .badge-text { color: #999; }
+  .palette-minimal .score-pill.mid { background: #333; color: #fbbf24; }
+  .palette-minimal .score-pill.high { background: #333; color: #4ade80; }
+  .palette-minimal .ext-popup { background: #161616; border: 1px solid #2a2a2a; box-shadow: 0 16px 48px rgba(0,0,0,0.6); }
+  .palette-minimal .popup-top h3 { color: #e0e0e0; }
+  .palette-minimal .popup-close { color: #555; }
+  .palette-minimal .popup-score-num { color: #fbbf24; }
+  .palette-minimal .popup-score-label { color: #777; }
+  .palette-minimal .popup-bar { background: #2a2a2a; }
+  .palette-minimal .popup-bar-fill { background: #fbbf24; }
+  .palette-minimal .popup-issue { background: #1e1e1e; color: #d4a030; }
+  .palette-minimal .popup-improved { background: #1a1e1a; border: 1px solid #2a3a2a; }
+  .palette-minimal .popup-improved-label { color: #6abf6a; }
+  .palette-minimal .popup-improved-text { color: #a0c8a0; }
+  .palette-minimal .popup-btn.primary { background: #fff; color: #000; }
+  .palette-minimal .popup-btn.secondary { background: #2a2a2a; color: #888; }
+
+  /* ======================== */
+  /* LIGHT MODE PALETTES      */
+  /* ======================== */
+
+  /* PALETTE 1 LIGHT: PURPLE */
+  .palette-purple-light .ext-badge { background: #fff; border: 1px solid #e0daf4; box-shadow: 0 4px 16px rgba(99,80,200,0.1); }
+  .palette-purple-light .badge-text { color: #6b5fa0; }
+  .palette-purple-light .score-pill.mid { background: #fef3c7; color: #b45309; }
+  .palette-purple-light .score-pill.high { background: #dcfce7; color: #16a34a; }
+  .palette-purple-light .ext-popup { background: #fff; border: 1px solid #e8e4f4; box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
+  .palette-purple-light .popup-top h3 { color: #2a2040; }
+  .palette-purple-light .popup-close { color: #c0b8d8; }
+  .palette-purple-light .popup-score-num { color: #d97706; }
+  .palette-purple-light .popup-score-label { color: #888; }
+  .palette-purple-light .popup-bar { background: #f0ecfa; }
+  .palette-purple-light .popup-bar-fill { background: #d97706; }
+  .palette-purple-light .popup-issue { background: #fffbeb; color: #92400e; }
+  .palette-purple-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .palette-purple-light .popup-improved-label { color: #16a34a; }
+  .palette-purple-light .popup-improved-text { color: #14532d; }
+  .palette-purple-light .popup-btn.primary { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff; }
+  .palette-purple-light .popup-btn.secondary { background: #f5f3ff; color: #6b5fa0; }
+
+  /* PALETTE 2 LIGHT: GLASS */
+  .palette-glass-light .ext-badge { background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 4px 16px rgba(0,0,0,0.06); backdrop-filter: blur(12px); }
+  .palette-glass-light .badge-text { color: #666; }
+  .palette-glass-light .score-pill.mid { background: #fef3c7; color: #b45309; }
+  .palette-glass-light .score-pill.high { background: #dcfce7; color: #16a34a; }
+  .palette-glass-light .ext-popup { background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 20px 60px rgba(0,0,0,0.1); backdrop-filter: blur(16px); }
+  .palette-glass-light .popup-top h3 { color: #1a1a2e; }
+  .palette-glass-light .popup-close { color: #bbb; }
+  .palette-glass-light .popup-score-num { color: #d97706; }
+  .palette-glass-light .popup-score-label { color: #888; }
+  .palette-glass-light .popup-bar { background: #f0f0f0; }
+  .palette-glass-light .popup-bar-fill { background: #d97706; }
+  .palette-glass-light .popup-issue { background: #fffbeb; color: #92400e; }
+  .palette-glass-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .palette-glass-light .popup-improved-label { color: #16a34a; }
+  .palette-glass-light .popup-improved-text { color: #14532d; }
+  .palette-glass-light .popup-btn.primary { background: rgba(0,0,0,0.8); color: #fff; }
+  .palette-glass-light .popup-btn.secondary { background: rgba(0,0,0,0.04); color: #666; }
+
+  /* PALETTE 3 LIGHT: EMBER */
+  .palette-ember-light .ext-badge { background: #fffbf5; border: 1px solid #f0dcc8; box-shadow: 0 4px 16px rgba(180,100,40,0.08); }
+  .palette-ember-light .badge-text { color: #8a6a48; }
+  .palette-ember-light .score-pill.mid { background: #fef3c7; color: #b45309; }
+  .palette-ember-light .score-pill.high { background: #dcfce7; color: #16a34a; }
+  .palette-ember-light .ext-popup { background: #fffdf8; border: 1px solid #f0e0cc; box-shadow: 0 16px 48px rgba(0,0,0,0.1); }
+  .palette-ember-light .popup-top h3 { color: #3a2a18; }
+  .palette-ember-light .popup-close { color: #c0a888; }
+  .palette-ember-light .popup-score-num { color: #d97706; }
+  .palette-ember-light .popup-score-label { color: #8a7a68; }
+  .palette-ember-light .popup-bar { background: #f5ead8; }
+  .palette-ember-light .popup-bar-fill { background: #d97706; }
+  .palette-ember-light .popup-issue { background: #fffbeb; color: #92400e; }
+  .palette-ember-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .palette-ember-light .popup-improved-label { color: #16a34a; }
+  .palette-ember-light .popup-improved-text { color: #14532d; }
+  .palette-ember-light .popup-btn.primary { background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; }
+  .palette-ember-light .popup-btn.secondary { background: #fef3e0; color: #8a6a40; }
+
+  /* PALETTE 4 LIGHT: OCEAN */
+  .palette-ocean-light .ext-badge { background: #f0f7ff; border: 1px solid #c8ddf4; box-shadow: 0 4px 16px rgba(40,100,200,0.08); }
+  .palette-ocean-light .badge-text { color: #3060a0; }
+  .palette-ocean-light .score-pill.mid { background: #fef3c7; color: #b45309; }
+  .palette-ocean-light .score-pill.high { background: #dcfce7; color: #16a34a; }
+  .palette-ocean-light .ext-popup { background: #f8fbff; border: 1px solid #d0e0f0; box-shadow: 0 16px 48px rgba(0,0,0,0.1); }
+  .palette-ocean-light .popup-top h3 { color: #0f2040; }
+  .palette-ocean-light .popup-close { color: #90b0d8; }
+  .palette-ocean-light .popup-score-num { color: #d97706; }
+  .palette-ocean-light .popup-score-label { color: #6080a0; }
+  .palette-ocean-light .popup-bar { background: #dde8f8; }
+  .palette-ocean-light .popup-bar-fill { background: #d97706; }
+  .palette-ocean-light .popup-issue { background: #fffbeb; color: #92400e; }
+  .palette-ocean-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .palette-ocean-light .popup-improved-label { color: #16a34a; }
+  .palette-ocean-light .popup-improved-text { color: #14532d; }
+  .palette-ocean-light .popup-btn.primary { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; }
+  .palette-ocean-light .popup-btn.secondary { background: #e8f0fe; color: #3060a0; }
+
+  /* PALETTE 5 LIGHT: MINIMAL */
+  .palette-minimal-light .ext-badge { background: #fff; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .palette-minimal-light .badge-text { color: #666; }
+  .palette-minimal-light .score-pill.mid { background: #f5f5f5; color: #b45309; }
+  .palette-minimal-light .score-pill.high { background: #f5f5f5; color: #16a34a; }
+  .palette-minimal-light .ext-popup { background: #fff; border: 1px solid #e8e8e8; box-shadow: 0 16px 48px rgba(0,0,0,0.1); }
+  .palette-minimal-light .popup-top h3 { color: #111; }
+  .palette-minimal-light .popup-close { color: #ccc; }
+  .palette-minimal-light .popup-score-num { color: #d97706; }
+  .palette-minimal-light .popup-score-label { color: #888; }
+  .palette-minimal-light .popup-bar { background: #f0f0f0; }
+  .palette-minimal-light .popup-bar-fill { background: #d97706; }
+  .palette-minimal-light .popup-issue { background: #fafafa; color: #92400e; }
+  .palette-minimal-light .popup-improved { background: #f8fdf8; border: 1px solid #d0e8d0; }
+  .palette-minimal-light .popup-improved-label { color: #16a34a; }
+  .palette-minimal-light .popup-improved-text { color: #14532d; }
+  .palette-minimal-light .popup-btn.primary { background: #111; color: #fff; }
+  .palette-minimal-light .popup-btn.secondary { background: #f5f5f5; color: #666; }
+
+  /* Claude light chat bg */
+  .chat-bg-light { background: #faf7f2 !important; }
+  .chat-bg-light .prev-msg.user .bubble { background: #ede8e0; color: #3a3028; }
+  .chat-bg-light .prev-msg.assistant .bubble { color: #5a5048; }
+  .chat-bg-light .prev-msg .name { color: #a09080; }
+  .chat-bg-light .input-box { background: #fff; border-color: #ddd5c8; }
+  .chat-bg-light .input-text { color: #3a3028; }
+  .chat-bg-light .input-footer span { color: #b0a898; }
+  .chat-bg-light .send-btn { background: #b47840; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="nav-label">Palette:</span>
+  <div class="nav-group" id="palette-nav">
+    <button class="nav-btn active" onclick="setPalette('purple')">Purple</button>
+    <button class="nav-btn" onclick="setPalette('glass')">Glass</button>
+    <button class="nav-btn" onclick="setPalette('ember')">Ember</button>
+    <button class="nav-btn" onclick="setPalette('ocean')">Ocean</button>
+    <button class="nav-btn" onclick="setPalette('minimal')">Minimal</button>
+  </div>
+  <div class="nav-sep"></div>
+  <span class="nav-label">Theme:</span>
+  <div class="nav-group" id="theme-nav">
+    <button class="nav-btn active" onclick="setTheme('dark')">Dark</button>
+    <button class="nav-btn" onclick="setTheme('light')">Light</button>
+  </div>
+  <div class="nav-sep"></div>
+  <span class="nav-label">State:</span>
+  <div class="nav-group" id="state-nav">
+    <button class="nav-btn" onclick="setState('badge')">Badge</button>
+    <button class="nav-btn active" onclick="setState('popup')">Popup</button>
+    <button class="nav-btn" onclick="setState('after')">After Accept</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="view-label" id="view-label">Purple · Dark · Popup open</div>
+  <div class="chat-mock" id="chat-mock" style="background:#2a2520;border-radius:16px;margin-top:12px;">
+    <div class="prev-msg user">
+      <div class="name">You</div>
+      <div class="bubble">write me a marketing email for our new product</div>
+    </div>
+    <div class="prev-msg assistant" style="margin-bottom:24px;">
+      <div class="name">Claude</div>
+      <div class="bubble">Here's a marketing email draft for your new product. I've included a subject line, opening hook, body with key benefits, and a call to action...</div>
+    </div>
+
+    <div class="input-box" style="position:relative;" id="input-container">
+
+      <!-- BADGE -->
+      <div class="ext-badge" id="ext-badge" onclick="toggleState()">
+        <span class="score-pill mid" id="badge-pill">4/10</span>
+        <span class="badge-text" id="badge-text">Tap to improve</span>
+      </div>
+
+      <!-- POPUP -->
+      <div class="ext-popup show" id="ext-popup">
+        <div class="popup-top">
+          <h3><span>&#10024;</span> Prompt Improver</h3>
+          <button class="popup-close" onclick="setState('badge')">&#215;</button>
+        </div>
+        <div class="popup-content">
+          <div class="popup-score">
+            <div class="popup-score-num" id="popup-score">4<span>/10</span></div>
+            <div class="popup-score-detail">
+              <div class="popup-score-label">Decent — clear intent, missing details</div>
+              <div class="popup-bar"><div class="popup-bar-fill" id="popup-fill" style="width:40%"></div></div>
+            </div>
+          </div>
+          <div class="popup-issues" id="popup-issues">
+            <div class="popup-issue"><span>&#9888;</span> No target audience or tone specified</div>
+            <div class="popup-issue"><span>&#9888;</span> Missing product details and key features</div>
+            <div class="popup-issue"><span>&#9888;</span> No format constraints (word count, CTA)</div>
+          </div>
+          <div class="popup-improved">
+            <div class="popup-improved-label">&#9889; Improved version</div>
+            <div class="popup-improved-text">You are a senior email copywriter. Write a follow-up marketing email that creates urgency for our AI-powered project management tool targeting startup founders. Include: a deadline-driven subject line, scarcity elements, 2 key benefits they'll miss, and a clear CTA. Under 150 words. Tone: professional but urgent.</div>
+          </div>
+          <div class="popup-btns">
+            <button class="popup-btn primary" onclick="setState('after')">&#10003; Use this prompt</button>
+            <button class="popup-btn secondary" onclick="setState('badge')">Keep mine</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="input-text" id="input-text">now make a follow up email that creates urgency</div>
+      <div class="input-footer">
+        <span>Claude 4 Sonnet</span>
+        <button class="send-btn">&#8593;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let palette = 'purple';
+let theme = 'dark';
+let state = 'popup';
+
+const palettes = ['purple', 'glass', 'ember', 'ocean', 'minimal'];
+
+function setPalette(p) {
+  palette = p;
+  document.querySelectorAll('#palette-nav .nav-btn').forEach((b,i) => b.classList.toggle('active', palettes[i] === p));
+  render();
+}
+function setTheme(t) {
+  theme = t;
+  document.querySelectorAll('#theme-nav .nav-btn').forEach((b,i) => b.classList.toggle('active', ['dark','light'][i] === t));
+  render();
+}
+function setState(s) {
+  state = s;
+  document.querySelectorAll('#state-nav .nav-btn').forEach((b,i) => b.classList.toggle('active', ['badge','popup','after'][i] === s));
+  render();
+}
+function toggleState() {
+  setState(state === 'popup' ? 'badge' : 'popup');
+}
+
+function render() {
+  const container = document.getElementById('input-container');
+  const cls = theme === 'light' ? `palette-${palette}-light` : `palette-${palette}`;
+  container.className = `input-box ${cls}`;
+  container.style.position = 'relative';
+
+  // Chat background
+  const chatMock = document.getElementById('chat-mock');
+  if (theme === 'light') {
+    chatMock.className = 'chat-mock chat-bg-light';
+    chatMock.style.background = '#faf7f2';
+    document.body.style.background = '#e8e8e8';
+  } else {
+    chatMock.className = 'chat-mock';
+    chatMock.style.background = '#2a2520';
+    document.body.style.background = '#0a0a0a';
+  }
+
+  // View label
+  const label = document.getElementById('view-label');
+  const paletteName = palette.charAt(0).toUpperCase() + palette.slice(1);
+  const stateNames = { badge: 'Badge visible', popup: 'Popup open', after: 'After accept' };
+  label.textContent = `${paletteName} · ${theme === 'dark' ? 'Dark' : 'Light'} · ${stateNames[state]}`;
+  label.style.background = theme === 'dark' ? '#0f0f0f' : '#e0e0e0';
+  label.style.color = theme === 'dark' ? '#666' : '#888';
+  label.style.borderColor = theme === 'dark' ? '#1a1a1a' : '#d0d0d0';
+
+  const badge = document.getElementById('ext-badge');
+  const popup = document.getElementById('ext-popup');
+  const pill = document.getElementById('badge-pill');
+  const badgeText = document.getElementById('badge-text');
+  const inputText = document.getElementById('input-text');
+
+  popup.classList.remove('show');
+  badge.style.display = 'flex';
+
+  if (state === 'badge') {
+    pill.textContent = '4/10';
+    pill.className = 'score-pill mid';
+    badgeText.textContent = 'Tap to improve';
+    inputText.textContent = 'now make a follow up email that creates urgency';
+  } else if (state === 'popup') {
+    pill.textContent = '4/10';
+    pill.className = 'score-pill mid';
+    badgeText.textContent = 'Tap to improve';
+    popup.classList.add('show');
+    inputText.textContent = 'now make a follow up email that creates urgency';
+  } else {
+    pill.textContent = '8/10';
+    pill.className = 'score-pill high';
+    badgeText.textContent = 'Looking good!';
+    inputText.textContent = 'You are a senior email copywriter. Write a follow-up marketing email that creates urgency for our AI-powered project management tool targeting startup founders. Include: a deadline-driven subject line, scarcity elements, 2 key benefits they\'ll miss, and a clear CTA. Under 150 words. Tone: professional but urgent.';
+  }
+}
+
+render();
+</script>
+</body>
+</html>

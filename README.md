@@ -168,7 +168,7 @@ The backend serves remote config at `GET /config`:
 
 ```json
 {
-  "freeLimit": 10,
+  "freeLimit": 5,
   "minPromptLength": 10
 }
 ```
@@ -179,7 +179,7 @@ This lets you change the free tier limit or minimum prompt length without pushin
 
 ## Free Tier
 
-- **10 free analyses** — no API key, no signup
+- **5 free analyses** — no API key, no signup
 - **Unlimited** with your own key — bring an Anthropic, OpenAI, or Google API key
 - Cost per analysis with your own key: **< $0.001**
 

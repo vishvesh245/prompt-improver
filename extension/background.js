@@ -3,7 +3,7 @@
 // =============================================
 
 const API_BASE = "https://prompt-improver-production.up.railway.app";
-const DEFAULT_FREE_LIMIT = 10; // fallback if server is unreachable
+const DEFAULT_FREE_LIMIT = 5; // fallback if server is unreachable
 
 let FREE_LIMIT = DEFAULT_FREE_LIMIT;
 

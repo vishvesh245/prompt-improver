@@ -159,7 +159,7 @@ app.get("/models", (_, res) => res.json({ providers: PROVIDERS }));
 
 // ── Remote config (change without extension update) ──
 const CONFIG = {
-  freeLimit: 10,          // free analyses before key required
+  freeLimit: 5,          // free analyses before key required
   minPromptLength: 10,    // minimum chars to trigger analysis
 };
 app.get("/config", (_, res) => res.json(CONFIG));
@@ -183,7 +183,7 @@ app.post("/improve", async (req, res) => {
 });
 
 // Free tier endpoint — uses server's own API key (for Chrome extension)
-const freeLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { error: "Too many free requests. Please add your own API key." } });
+const freeLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5, message: { error: "Too many free requests. Please add your own API key." } });
 
 const FreeRequestSchema = z.object({
   prompt: z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),

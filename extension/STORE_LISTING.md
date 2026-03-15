@@ -26,7 +26,7 @@ Ever hit send on a prompt and gotten a mediocre response? The problem usually is
 - **Works everywhere** — ChatGPT, Claude, and Gemini supported
 
 ### Free to Start
-- **10 free analyses** — no API key needed
+- **5 free analyses** — no API key needed
 - **Unlimited with your own key** — bring your Anthropic, OpenAI, or Google API key (costs less than $0.001 per analysis)
 
 ### Privacy First

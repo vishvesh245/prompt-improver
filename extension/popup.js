@@ -37,7 +37,7 @@ chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (res) => {
     keyInput.placeholder = "Replace with a different key...";
     removeBtn.style.display = "block";
   } else {
-    const limit = res.freeLimit || 10;
+    const limit = res.freeLimit || 5;
     statusArea.innerHTML = `
       <div class="status-card free">
         <span class="status-icon">\u26a1</span>
@@ -46,7 +46,7 @@ chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (res) => {
     `;
   }
 
-  const limit = res.freeLimit || 10;
+  const limit = res.freeLimit || 5;
   statsArea.innerHTML = `
     <div class="stat-row"><span>Free analyses used</span><span>${res.freeUsed} / ${limit}</span></div>
     <div class="stat-row"><span>API key</span><span>${res.hasKey ? "Connected" : "Not set"}</span></div>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prompt Improver Extension — UI Mockup v2</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, system-ui, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; }
+
+  /* ===== TOP NAV ===== */
+  .top-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    background: #111; border-bottom: 1px solid #222;
+    display: flex; align-items: center; padding: 0 16px; height: 48px; gap: 8px;
+  }
+  .nav-group { display: flex; gap: 2px; background: #1a1a1a; border-radius: 10px; padding: 3px; }
+  .nav-btn {
+    padding: 7px 16px; border-radius: 8px; border: none; font-size: 12px;
+    font-weight: 500; cursor: pointer; color: #888; background: transparent; transition: all 0.15s;
+  }
+  .nav-btn.active { background: #2a2a2a; color: #fff; }
+  .nav-btn:hover:not(.active) { color: #ccc; }
+  .nav-sep { width: 1px; height: 24px; background: #333; margin: 0 12px; }
+  .theme-toggle {
+    margin-left: auto; padding: 6px 14px; border-radius: 8px; border: 1px solid #333;
+    background: #1a1a1a; color: #aaa; font-size: 12px; cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: #555; color: #fff; }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; padding-top: 48px; min-height: 100vh; }
+  .screen.active { display: block; }
+
+  /* ===== SHARED CHAT LAYOUT ===== */
+  .chat-frame { display: flex; height: calc(100vh - 48px); }
+  .sidebar { width: 260px; flex-shrink: 0; padding: 16px; }
+  .sidebar-logo { font-size: 18px; font-weight: 600; margin-bottom: 20px; padding: 8px 4px; }
+  .sidebar-item { padding: 10px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; margin-bottom: 2px; }
+  .chat-area { flex: 1; display: flex; flex-direction: column; }
+  .messages { flex: 1; overflow-y: auto; padding: 32px 60px; }
+  .input-zone { padding: 16px 60px 28px; }
+
+  .msg { margin-bottom: 20px; max-width: 680px; }
+  .msg.user { margin-left: auto; }
+  .msg-bubble { font-size: 14px; line-height: 1.65; padding: 12px 16px; border-radius: 16px; }
+  .msg-name { font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+
+  .input-box {
+    border-radius: 16px; padding: 14px 18px; position: relative; min-height: 52px;
+  }
+  .input-text { font-size: 14px; line-height: 1.6; font-family: inherit; }
+  .input-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: none;
+    font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ======================================= */
+  /* EXTENSION UI — THE BADGE                */
+  /* ======================================= */
+  .ext-badge {
+    position: absolute; top: -16px; right: 16px;
+    display: flex; align-items: center; gap: 7px;
+    border-radius: 22px; padding: 6px 14px 6px 10px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    font-size: 12px; z-index: 10;
+  }
+  .ext-badge:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
+  .ext-badge .score-pill {
+    font-weight: 700; border-radius: 12px; padding: 2px 8px; font-size: 11px;
+  }
+  .ext-badge .badge-text { font-weight: 500; }
+
+  /* Score colors */
+  .score-low .score-pill { background: #ef444420; color: #f87171; }
+  .score-mid .score-pill { background: #f59e0b20; color: #fbbf24; }
+  .score-high .score-pill { background: #22c55e20; color: #4ade80; }
+
+  /* ======================================= */
+  /* EXTENSION UI — THE POPUP                */
+  /* ======================================= */
+  .ext-popup {
+    position: absolute; bottom: calc(100% + 10px); right: 0;
+    width: 400px; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    display: none; z-index: 100;
+  }
+  .ext-popup.show { display: block; animation: popUp 0.2s ease-out; }
+  @keyframes popUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .popup-top { padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: center; }
+  .popup-top h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .popup-close { background: none; border: none; font-size: 20px; cursor: pointer; line-height: 1; }
+
+  .popup-content { padding: 0 18px 18px; }
+
+  /* Score display */
+  .popup-score { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .popup-score-num { font-size: 36px; font-weight: 800; line-height: 1; }
+  .popup-score-detail { flex: 1; }
+  .popup-score-label { font-size: 12px; margin-bottom: 5px; }
+  .popup-bar { height: 5px; border-radius: 99px; overflow: hidden; }
+  .popup-bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s; }
+
+  /* Issues */
+  .popup-issues { margin-bottom: 14px; }
+  .popup-issue {
+    font-size: 12px; padding: 7px 10px; border-radius: 8px;
+    margin-bottom: 4px; display: flex; gap: 7px; align-items: flex-start;
+  }
+  .popup-issue-icon { flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+
+  /* Improved prompt */
+  .popup-improved {
+    border-radius: 12px; padding: 14px; margin-bottom: 14px;
+  }
+  .popup-improved-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .popup-improved-text { font-size: 13px; line-height: 1.65; }
+
+  /* Action buttons */
+  .popup-btns { display: flex; gap: 8px; }
+  .popup-btn {
+    flex: 1; padding: 11px 14px; border-radius: 10px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .popup-btn:hover { opacity: 0.85; }
+
+  /* ======================================= */
+  /* THEME: CLAUDE DARK                      */
+  /* ======================================= */
+  .claude-dark .sidebar { background: #1a1916; border-right: 1px solid #2a2824; }
+  .claude-dark .sidebar-logo { color: #d4a574; }
+  .claude-dark .sidebar-item { color: #8a8070; }
+  .claude-dark .sidebar-item:hover { background: #252320; color: #c0b8a8; }
+  .claude-dark .sidebar-item.active-nav { background: #252320; color: #e8e0d4; }
+  .claude-dark .chat-area { background: #2a2520; }
+  .claude-dark .msg.user .msg-bubble { background: #3a3530; color: #e8e0d8; border-radius: 16px 16px 4px 16px; }
+  .claude-dark .msg.assistant .msg-bubble { background: transparent; color: #d8d0c8; }
+  .claude-dark .msg-name { color: #7a7060; }
+  .claude-dark .input-box { background: #352f28; border: 1px solid #4a4035; }
+  .claude-dark .input-text { color: #e8e0d8; }
+  .claude-dark .send-btn { background: #d4a574; color: #1a1a1a; }
+  /* Badge on claude dark */
+  .claude-dark .ext-badge { background: #1e1b2e; border: 1px solid #3a3558; }
+  .claude-dark .ext-badge .badge-text { color: #b0a8d0; }
+  /* Popup on claude dark */
+  .claude-dark .ext-popup { background: #1e1b2e; border: 1px solid #302a50; }
+  .claude-dark .popup-top h3 { color: #d8d0f0; }
+  .claude-dark .popup-close { color: #665f88; }
+  .claude-dark .popup-score-label { color: #8880a8; }
+  .claude-dark .popup-bar { background: #2a2648; }
+  .claude-dark .popup-issue { background: #f59e0b08; color: #fbbf24; }
+  .claude-dark .popup-improved { background: #0d2818; border: 1px solid #22c55e28; }
+  .claude-dark .popup-improved-label { color: #4ade80; }
+  .claude-dark .popup-improved-text { color: #a0dbb8; }
+  .claude-dark .popup-btn.primary { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+  .claude-dark .popup-btn.secondary { background: #2a2648; color: #9890b8; }
+  .claude-dark .popup-score-num.low { color: #f87171; }
+  .claude-dark .popup-score-num.mid { color: #fbbf24; }
+  .claude-dark .popup-score-num.high { color: #4ade80; }
+
+  /* ======================================= */
+  /* THEME: CLAUDE LIGHT                     */
+  /* ======================================= */
+  .claude-light .sidebar { background: #f5f0e8; border-right: 1px solid #e8e0d4; }
+  .claude-light .sidebar-logo { color: #b47840; }
+  .claude-light .sidebar-item { color: #8a7a68; }
+  .claude-light .sidebar-item:hover { background: #ebe5da; color: #5a4a38; }
+  .claude-light .sidebar-item.active-nav { background: #ebe5da; color: #3a2a18; }
+  .claude-light .chat-area { background: #faf7f2; }
+  .claude-light .msg.user .msg-bubble { background: #ede8e0; color: #3a3028; border-radius: 16px 16px 4px 16px; }
+  .claude-light .msg.assistant .msg-bubble { background: transparent; color: #4a4038; }
+  .claude-light .msg-name { color: #a09080; }
+  .claude-light .input-box { background: #fff; border: 1px solid #ddd5c8; }
+  .claude-light .input-text { color: #3a3028; }
+  .claude-light .send-btn { background: #b47840; color: #fff; }
+  /* Badge on claude light */
+  .claude-light .ext-badge { background: #fff; border: 1px solid #e0daf0; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .claude-light .ext-badge .badge-text { color: #6b5fa0; }
+  /* Popup on claude light */
+  .claude-light .ext-popup { background: #fff; border: 1px solid #e8e4f4; box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
+  .claude-light .popup-top h3 { color: #2a2040; }
+  .claude-light .popup-close { color: #bbb0d0; }
+  .claude-light .popup-score-label { color: #888; }
+  .claude-light .popup-bar { background: #eee8f8; }
+  .claude-light .popup-issue { background: #fff8ed; color: #b45309; }
+  .claude-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .claude-light .popup-improved-label { color: #16a34a; }
+  .claude-light .popup-improved-text { color: #14532d; }
+  .claude-light .popup-btn.primary { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff; }
+  .claude-light .popup-btn.secondary { background: #f3f0fa; color: #6b5fa0; }
+  .claude-light .popup-score-num.low { color: #ef4444; }
+  .claude-light .popup-score-num.mid { color: #d97706; }
+  .claude-light .popup-score-num.high { color: #16a34a; }
+
+  /* ======================================= */
+  /* THEME: CHATGPT DARK                     */
+  /* ======================================= */
+  .gpt-dark .sidebar { background: #171717; border-right: 1px solid #2a2a2a; }
+  .gpt-dark .sidebar-logo { color: #fff; }
+  .gpt-dark .sidebar-item { color: #999; }
+  .gpt-dark .sidebar-item:hover { background: #222; color: #ddd; }
+  .gpt-dark .sidebar-item.active-nav { background: #222; color: #fff; }
+  .gpt-dark .chat-area { background: #212121; }
+  .gpt-dark .msg.user .msg-bubble { background: #303030; color: #ececec; border-radius: 16px 16px 4px 16px; }
+  .gpt-dark .msg.assistant .msg-bubble { background: transparent; color: #d1d1d1; }
+  .gpt-dark .msg.assistant .msg-name { color: #10a37f; }
+  .gpt-dark .msg-name { color: #777; }
+  .gpt-dark .input-box { background: #303030; border: 1px solid #424242; }
+  .gpt-dark .input-text { color: #ececec; }
+  .gpt-dark .send-btn { background: #fff; color: #000; }
+  /* Badge */
+  .gpt-dark .ext-badge { background: #1a1a2e; border: 1px solid #3a3558; }
+  .gpt-dark .ext-badge .badge-text { color: #b0a8d0; }
+  /* Popup */
+  .gpt-dark .ext-popup { background: #1e1e30; border: 1px solid #32305a; }
+  .gpt-dark .popup-top h3 { color: #e0ddf0; }
+  .gpt-dark .popup-close { color: #666080; }
+  .gpt-dark .popup-score-label { color: #8882a8; }
+  .gpt-dark .popup-bar { background: #2c2a48; }
+  .gpt-dark .popup-issue { background: #f59e0b08; color: #fbbf24; }
+  .gpt-dark .popup-improved { background: #0d2818; border: 1px solid #22c55e28; }
+  .gpt-dark .popup-improved-label { color: #4ade80; }
+  .gpt-dark .popup-improved-text { color: #a0dbb8; }
+  .gpt-dark .popup-btn.primary { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+  .gpt-dark .popup-btn.secondary { background: #2a2848; color: #9890b8; }
+  .gpt-dark .popup-score-num.low { color: #f87171; }
+  .gpt-dark .popup-score-num.mid { color: #fbbf24; }
+  .gpt-dark .popup-score-num.high { color: #4ade80; }
+
+  /* ======================================= */
+  /* THEME: CHATGPT LIGHT                    */
+  /* ======================================= */
+  .gpt-light .sidebar { background: #f9f9f9; border-right: 1px solid #e5e5e5; }
+  .gpt-light .sidebar-logo { color: #111; }
+  .gpt-light .sidebar-item { color: #666; }
+  .gpt-light .sidebar-item:hover { background: #efefef; color: #333; }
+  .gpt-light .sidebar-item.active-nav { background: #efefef; color: #111; }
+  .gpt-light .chat-area { background: #fff; }
+  .gpt-light .msg.user .msg-bubble { background: #f4f4f4; color: #1a1a1a; border-radius: 16px 16px 4px 16px; }
+  .gpt-light .msg.assistant .msg-bubble { background: transparent; color: #333; }
+  .gpt-light .msg.assistant .msg-name { color: #10a37f; }
+  .gpt-light .msg-name { color: #999; }
+  .gpt-light .input-box { background: #f4f4f4; border: 1px solid #e0e0e0; }
+  .gpt-light .input-text { color: #1a1a1a; }
+  .gpt-light .send-btn { background: #111; color: #fff; }
+  /* Badge */
+  .gpt-light .ext-badge { background: #fff; border: 1px solid #e0daf0; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .gpt-light .ext-badge .badge-text { color: #6b5fa0; }
+  /* Popup */
+  .gpt-light .ext-popup { background: #fff; border: 1px solid #e8e4f4; box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
+  .gpt-light .popup-top h3 { color: #1a1a2e; }
+  .gpt-light .popup-close { color: #bbb; }
+  .gpt-light .popup-score-label { color: #888; }
+  .gpt-light .popup-bar { background: #eee8f8; }
+  .gpt-light .popup-issue { background: #fff8ed; color: #b45309; }
+  .gpt-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .gpt-light .popup-improved-label { color: #16a34a; }
+  .gpt-light .popup-improved-text { color: #14532d; }
+  .gpt-light .popup-btn.primary { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff; }
+  .gpt-light .popup-btn.secondary { background: #f3f0fa; color: #6b5fa0; }
+  .gpt-light .popup-score-num.low { color: #ef4444; }
+  .gpt-light .popup-score-num.mid { color: #d97706; }
+  .gpt-light .popup-score-num.high { color: #16a34a; }
+
+  /* ======================================= */
+  /* THEME: GEMINI DARK                      */
+  /* ======================================= */
+  .gemini-dark .sidebar { background: #1b1b1f; border-right: 1px solid #2a2a30; }
+  .gemini-dark .sidebar-logo { color: #8ab4f8; }
+  .gemini-dark .sidebar-item { color: #8e8e95; }
+  .gemini-dark .sidebar-item:hover { background: #25252a; color: #c8c8d0; }
+  .gemini-dark .sidebar-item.active-nav { background: #1e3a5f30; color: #8ab4f8; }
+  .gemini-dark .chat-area { background: #1e1f23; }
+  .gemini-dark .msg.user .msg-bubble { background: #2a2b30; color: #e0e0e8; border-radius: 16px 16px 4px 16px; }
+  .gemini-dark .msg.assistant .msg-bubble { background: transparent; color: #c8c8d4; }
+  .gemini-dark .msg.assistant .msg-name { color: #8ab4f8; }
+  .gemini-dark .msg-name { color: #6e6e78; }
+  .gemini-dark .input-box { background: #2a2b30; border: 1px solid #3a3b42; }
+  .gemini-dark .input-text { color: #e0e0e8; }
+  .gemini-dark .send-btn { background: #8ab4f8; color: #1b1b1f; }
+  /* Badge */
+  .gemini-dark .ext-badge { background: #1a1a2e; border: 1px solid #3a3558; }
+  .gemini-dark .ext-badge .badge-text { color: #b0a8d0; }
+  /* Popup */
+  .gemini-dark .ext-popup { background: #1e1e30; border: 1px solid #32305a; }
+  .gemini-dark .popup-top h3 { color: #e0ddf0; }
+  .gemini-dark .popup-close { color: #666080; }
+  .gemini-dark .popup-score-label { color: #8882a8; }
+  .gemini-dark .popup-bar { background: #2c2a48; }
+  .gemini-dark .popup-issue { background: #f59e0b08; color: #fbbf24; }
+  .gemini-dark .popup-improved { background: #0d2818; border: 1px solid #22c55e28; }
+  .gemini-dark .popup-improved-label { color: #4ade80; }
+  .gemini-dark .popup-improved-text { color: #a0dbb8; }
+  .gemini-dark .popup-btn.primary { background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: #fff; }
+  .gemini-dark .popup-btn.secondary { background: #2a2848; color: #9890b8; }
+  .gemini-dark .popup-score-num.low { color: #f87171; }
+  .gemini-dark .popup-score-num.mid { color: #fbbf24; }
+  .gemini-dark .popup-score-num.high { color: #4ade80; }
+
+  /* ======================================= */
+  /* THEME: GEMINI LIGHT                     */
+  /* ======================================= */
+  .gemini-light .sidebar { background: #f8f9fa; border-right: 1px solid #e8eaed; }
+  .gemini-light .sidebar-logo { color: #1a73e8; }
+  .gemini-light .sidebar-item { color: #5f6368; }
+  .gemini-light .sidebar-item:hover { background: #e8f0fe40; color: #333; }
+  .gemini-light .sidebar-item.active-nav { background: #e8f0fe; color: #1a73e8; }
+  .gemini-light .chat-area { background: #fff; }
+  .gemini-light .msg.user .msg-bubble { background: #e8f0fe; color: #1a1a1a; border-radius: 16px 16px 4px 16px; }
+  .gemini-light .msg.assistant .msg-bubble { background: transparent; color: #333; }
+  .gemini-light .msg.assistant .msg-name { color: #1a73e8; }
+  .gemini-light .msg-name { color: #999; }
+  .gemini-light .input-box { background: #f1f3f4; border: 1px solid #dfe1e5; }
+  .gemini-light .input-text { color: #1a1a1a; }
+  .gemini-light .send-btn { background: #1a73e8; color: #fff; }
+  /* Badge */
+  .gemini-light .ext-badge { background: #fff; border: 1px solid #e0daf0; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .gemini-light .ext-badge .badge-text { color: #6b5fa0; }
+  /* Popup */
+  .gemini-light .ext-popup { background: #fff; border: 1px solid #e8e4f4; box-shadow: 0 16px 48px rgba(0,0,0,0.12); }
+  .gemini-light .popup-top h3 { color: #1a1a2e; }
+  .gemini-light .popup-close { color: #bbb; }
+  .gemini-light .popup-score-label { color: #888; }
+  .gemini-light .popup-bar { background: #eee8f8; }
+  .gemini-light .popup-issue { background: #fff8ed; color: #b45309; }
+  .gemini-light .popup-improved { background: #f0fdf4; border: 1px solid #bbf7d0; }
+  .gemini-light .popup-improved-label { color: #16a34a; }
+  .gemini-light .popup-improved-text { color: #14532d; }
+  .gemini-light .popup-btn.primary { background: linear-gradient(135deg, #7c3aed, #8b5cf6); color: #fff; }
+  .gemini-light .popup-btn.secondary { background: #f3f0fa; color: #6b5fa0; }
+  .gemini-light .popup-score-num.low { color: #ef4444; }
+  .gemini-light .popup-score-num.mid { color: #d97706; }
+  .gemini-light .popup-score-num.high { color: #16a34a; }
+
+  /* ===== BADGE STATES ===== */
+  .ext-badge.analyzing {
+    animation: badgePulseAnim 1.5s ease-in-out infinite;
+  }
+  @keyframes badgePulseAnim {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* ===== STATUS LABEL ===== */
+  .view-label {
+    text-align: center; padding: 8px; font-size: 11px; color: #555;
+    background: #0f0f0f; border-bottom: 1px solid #1a1a1a;
+    letter-spacing: 0.05em; text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-bar">
+  <div class="nav-group" id="platform-nav">
+    <button class="nav-btn active" onclick="setPlatform('claude')">Claude</button>
+    <button class="nav-btn" onclick="setPlatform('gpt')">ChatGPT</button>
+    <button class="nav-btn" onclick="setPlatform('gemini')">Gemini</button>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="nav-group" id="theme-nav">
+    <button class="nav-btn active" onclick="setTheme('dark')">Dark</button>
+    <button class="nav-btn" onclick="setTheme('light')">Light</button>
+  </div>
+  <div class="nav-sep"></div>
+  <div class="nav-group" id="state-nav">
+    <button class="nav-btn active" onclick="setState('badge')">Badge Only</button>
+    <button class="nav-btn" onclick="setState('popup')">Popup Open</button>
+    <button class="nav-btn" onclick="setState('after')">After Accept</button>
+  </div>
+</div>
+
+<!-- ALL 6 SCREENS (3 platforms x 2 themes) -->
+<!-- We'll render dynamically but for the mockup, create one container -->
+<div class="screen active" id="main-screen">
+  <div class="view-label" id="view-label">Claude · Dark Mode · Badge visible</div>
+  <div class="chat-frame" id="chat-frame">
+    <div class="sidebar">
+      <div class="sidebar-logo" id="sidebar-logo">claude</div>
+      <div class="sidebar-item active-nav">New chat</div>
+      <div class="sidebar-item">Marketing email draft</div>
+      <div class="sidebar-item">Python debugging help</div>
+      <div class="sidebar-item">Trip planning ideas</div>
+    </div>
+    <div class="chat-area">
+      <div class="messages">
+        <div class="msg user">
+          <div class="msg-name" id="user-label">You</div>
+          <div class="msg-bubble">write me a marketing email for our new product</div>
+        </div>
+        <div class="msg assistant">
+          <div class="msg-name" id="assistant-label">Claude</div>
+          <div class="msg-bubble">
+            Here's a marketing email draft for your new product:<br><br>
+            <strong>Subject: Exciting News — Our Latest Product is Here!</strong><br><br>
+            Dear valued customer,<br><br>
+            We're thrilled to announce the launch of our newest product. It's designed to make your life easier and more productive...
+          </div>
+        </div>
+      </div>
+      <div class="input-zone">
+        <div class="input-box" style="position:relative;" id="input-container">
+
+          <!-- BADGE -->
+          <div class="ext-badge score-mid" id="ext-badge" onclick="togglePopup()">
+            <span class="score-pill" id="badge-pill">4/10</span>
+            <span class="badge-text" id="badge-text">Tap to improve</span>
+          </div>
+
+          <!-- POPUP -->
+          <div class="ext-popup" id="ext-popup">
+            <div class="popup-top">
+              <h3><span>&#10024;</span> Prompt Improver</h3>
+              <button class="popup-close" onclick="togglePopup()">&#215;</button>
+            </div>
+            <div class="popup-content">
+              <div class="popup-score">
+                <div class="popup-score-num mid" id="popup-score-num">4<span style="font-size:14px;opacity:0.5">/10</span></div>
+                <div class="popup-score-detail">
+                  <div class="popup-score-label" id="popup-score-label">Decent — clear intent, missing details</div>
+                  <div class="popup-bar"><div class="popup-bar-fill" id="popup-bar-fill" style="width:40%;background:#fbbf24"></div></div>
+                </div>
+              </div>
+              <div class="popup-issues" id="popup-issues">
+                <div class="popup-issue"><span class="popup-issue-icon">&#9888;</span>No target audience or tone specified</div>
+                <div class="popup-issue"><span class="popup-issue-icon">&#9888;</span>Missing product details and key features</div>
+                <div class="popup-issue"><span class="popup-issue-icon">&#9888;</span>No format constraints (word count, sections, CTA)</div>
+              </div>
+              <div class="popup-improved" id="popup-improved">
+                <div class="popup-improved-label">&#9889; Improved version</div>
+                <div class="popup-improved-text">You are a senior email copywriter. Write a follow-up marketing email that creates urgency for our AI-powered project management tool targeting startup founders. Include: a deadline-driven subject line, scarcity elements (limited spots/time), 2 key benefits they'll miss, and a clear CTA with a specific deadline. Keep it under 150 words. Tone: professional but urgent.</div>
+              </div>
+              <div class="popup-btns">
+                <button class="popup-btn primary" onclick="acceptImproved()">&#10003; Use this prompt</button>
+                <button class="popup-btn secondary" onclick="togglePopup()">Keep mine</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-text" id="input-text">now make a follow up email that creates urgency</div>
+          <div class="input-footer">
+            <span style="font-size:12px;opacity:0.4;" id="model-label">Claude 4 Sonnet</span>
+            <button class="send-btn" id="send-btn">&#8593;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let platform = 'claude';
+let theme = 'dark';
+let state = 'badge';
+
+function setPlatform(p) {
+  platform = p;
+  document.querySelectorAll('#platform-nav .nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['claude','gpt','gemini'][i] === p);
+  });
+  render();
+}
+
+function setTheme(t) {
+  theme = t;
+  document.querySelectorAll('#theme-nav .nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['dark','light'][i] === t);
+  });
+  render();
+}
+
+function setState(s) {
+  state = s;
+  document.querySelectorAll('#state-nav .nav-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['badge','popup','after'][i] === s);
+  });
+  render();
+}
+
+function togglePopup() {
+  if (state === 'popup') setState('badge');
+  else setState('popup');
+}
+
+function acceptImproved() {
+  setState('after');
+}
+
+const config = {
+  claude: {
+    logo: 'claude',
+    assistant: 'Claude',
+    model: 'Claude 4 Sonnet',
+  },
+  gpt: {
+    logo: 'ChatGPT',
+    assistant: 'ChatGPT',
+    model: 'GPT-4o',
+  },
+  gemini: {
+    logo: 'Gemini',
+    assistant: 'Gemini',
+    model: 'Gemini 1.5 Pro',
+  }
+};
+
+function render() {
+  const frame = document.getElementById('chat-frame');
+  const themeClass = `${platform}-${theme}`;
+  frame.className = `chat-frame ${themeClass}`;
+
+  const c = config[platform];
+  document.getElementById('sidebar-logo').textContent = c.logo;
+  document.getElementById('assistant-label').textContent = c.assistant;
+  document.getElementById('model-label').textContent = c.model;
+
+  const label = document.getElementById('view-label');
+  const platformName = platform === 'gpt' ? 'ChatGPT' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  const themeName = theme === 'dark' ? 'Dark Mode' : 'Light Mode';
+
+  const badge = document.getElementById('ext-badge');
+  const popup = document.getElementById('ext-popup');
+  const pill = document.getElementById('badge-pill');
+  const badgeText = document.getElementById('badge-text');
+  const inputText = document.getElementById('input-text');
+
+  popup.classList.remove('show');
+
+  if (state === 'badge') {
+    label.textContent = `${platformName} · ${themeName} · Badge visible — user just typed a prompt`;
+    badge.style.display = 'flex';
+    badge.className = 'ext-badge score-mid';
+    pill.textContent = '4/10';
+    badgeText.textContent = 'Tap to improve';
+    inputText.textContent = 'now make a follow up email that creates urgency';
+  } else if (state === 'popup') {
+    label.textContent = `${platformName} · ${themeName} · Popup open — full analysis shown`;
+    badge.style.display = 'flex';
+    badge.className = 'ext-badge score-mid';
+    pill.textContent = '4/10';
+    badgeText.textContent = 'Tap to improve';
+    popup.classList.add('show');
+    inputText.textContent = 'now make a follow up email that creates urgency';
+  } else if (state === 'after') {
+    label.textContent = `${platformName} · ${themeName} · After accept — prompt replaced, score updated`;
+    badge.style.display = 'flex';
+    badge.className = 'ext-badge score-high';
+    pill.textContent = '8/10';
+    badgeText.textContent = 'Looking good!';
+    inputText.textContent = 'You are a senior email copywriter. Write a follow-up marketing email that creates urgency for our AI-powered project management tool targeting startup founders. Include: a deadline-driven subject line, scarcity elements, 2 key benefits they\'ll miss, and a clear CTA with a specific deadline. Keep it under 150 words. Tone: professional but urgent.';
+  }
+
+  // body bg matches theme
+  document.body.style.background = theme === 'dark' ? '#0a0a0a' : '#e8e8e8';
+  label.style.background = theme === 'dark' ? '#0f0f0f' : '#e0e0e0';
+  label.style.color = theme === 'dark' ? '#555' : '#888';
+  label.style.borderColor = theme === 'dark' ? '#1a1a1a' : '#d0d0d0';
+}
+
+render();
+</script>
+</body>
+</html>
