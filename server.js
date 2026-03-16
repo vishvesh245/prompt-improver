@@ -205,7 +205,13 @@ app.post("/improve-free", freeLimiter, async (req, res) => {
     });
     return res.json({ success: true, data: result });
   } catch (err) {
-    return res.status(500).json({ error: err.message || "Something went wrong." });
+    console.error("[improve-free] Error:", err.status, err.message, err?.error?.type);
+    const status = err?.status || 500;
+    const message =
+      status === 401 ? "Free tier API key is invalid. Please try with your own key." :
+      status === 429 ? "Free tier is temporarily rate-limited. Please try again later or add your own API key." :
+      err.message || "Something went wrong.";
+    return res.status(status).json({ error: message });
   }
 });
 
