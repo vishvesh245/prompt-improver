@@ -883,7 +883,7 @@
       if (chrome.runtime.lastError) return;
       if (res?.hasKey) { showBadgeForCurrentInput(); return; }
       isOnboardingOpen = true;
-      renderOnboarding(res?.freeRemaining ?? 3);
+      renderOnboarding(res?.freeRemaining ?? 5);
     });
   }
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PromptPulse — Grammarly for AI Prompts",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Instantly score and improve your AI prompts — works on ChatGPT, Claude, and Gemini. Like Grammarly, but for prompts.",
   "permissions": ["storage"],
   "host_permissions": [
