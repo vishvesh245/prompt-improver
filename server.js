@@ -151,7 +151,7 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 app.use(express.static(__dirname));  // serves index.html at root
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 60, message: { error: "Too many requests. Please wait 15 minutes." } });
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { error: "Too many requests. Please wait 15 minutes." } });
 app.use("/improve", limiter);
 
 app.get("/health", (_, res) => res.json({ status: "ok", providers: Object.keys(PROVIDERS) }));
@@ -183,13 +183,13 @@ app.post("/improve", async (req, res) => {
 });
 
 // Free tier endpoint — uses server's own API key (for Chrome extension)
-const freeLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { error: "Too many free requests. Please add your own API key." } });
+// Free limiter removed — extension already enforces 5-analysis lifetime limit client-side
 
 const FreeRequestSchema = z.object({
   prompt: z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),
 });
 
-app.post("/improve-free", freeLimiter, async (req, res) => {
+app.post("/improve-free", async (req, res) => {
   const serverKey = process.env.ANTHROPIC_API_KEY;
   if (!serverKey) return res.status(503).json({ error: "Free tier is not configured on this server." });
 
