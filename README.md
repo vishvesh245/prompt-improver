@@ -3,7 +3,7 @@
 > Instantly score and improve your AI prompts. Works on ChatGPT, Claude, and Gemini.
 
 <!-- [Chrome Web Store](link-here) · -->
-[Try it here] (https://chromewebstore.google.com/detail/mpebhejccfkjcmgmeigbkakbgnlflpfb?utm_source=item-share-cb)
+[Try it here](https://chromewebstore.google.com/detail/mpebhejccfkjcmgmeigbkakbgnlflpfb?utm_source=item-share-cb)
 [Privacy Policy](https://vishvesh245.github.io/prompt-improver/privacy-policy.html)
 
 ---
