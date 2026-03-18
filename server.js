@@ -183,24 +183,40 @@ app.post("/improve", async (req, res) => {
 });
 
 // Free tier endpoint — uses server's own API key (for Chrome extension)
-const freeLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 5,                          // 5 requests per IP per day (matches extension free limit)
-  message: { error: "Free tier limit reached. Add your own API key to continue." },
+// Rate limited per install_id (unique per extension install, not per IP)
+// This correctly handles offices/shared networks — each install gets its own 5 free analyses
+const freeUsageMap = new Map(); // install_id -> count (resets on server restart)
+const FREE_TIER_LIMIT = 5;
+
+// Global safety net — prevent bot abuse even without a valid install_id
+const globalFreeLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100,            // max 100 req/min globally across all free users
+  message: { error: "Server is busy. Please try again shortly." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const FreeRequestSchema = z.object({
-  prompt: z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),
+  prompt:     z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),
+  install_id: z.string().uuid("Invalid install ID").optional(),
 });
 
-app.post("/improve-free", freeLimiter, async (req, res) => {
+app.post("/improve-free", globalFreeLimiter, async (req, res) => {
   const serverKey = process.env.ANTHROPIC_API_KEY;
   if (!serverKey) return res.status(503).json({ error: "Free tier is not configured on this server." });
 
   const parsed = FreeRequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
+
+  // Enforce per-install limit
+  const installId = parsed.data.install_id;
+  if (!installId) return res.status(400).json({ error: "Missing install ID." });
+  const used = freeUsageMap.get(installId) || 0;
+  if (used >= FREE_TIER_LIMIT) {
+    return res.status(429).json({ error: "Free tier limit reached. Add your own API key to continue." });
+  }
+  freeUsageMap.set(installId, used + 1);
 
   try {
     const result = await improvePrompt({
