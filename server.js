@@ -142,7 +142,55 @@ const RequestSchema = z.object({
 });
 
 // ─────────────────────────────────────────────
-// 6. REST API
+// 6. SPIKE DETECTOR
+// ─────────────────────────────────────────────
+
+const SPIKE_WINDOW_MS  = 60 * 1000;  // 1 minute rolling window
+const SPIKE_THRESHOLD  = 30;          // alert if >30 free requests in 1 min
+const SPIKE_COOLDOWN_MS = 10 * 60 * 1000; // don't re-alert within 10 mins
+
+let spikeTimestamps = [];   // timestamps of recent /improve-free calls
+let lastAlertAt = 0;        // when we last sent an alert
+
+async function sendSpikeAlert(count) {
+  const alertEmail = process.env.ALERT_EMAIL;
+  const resendKey  = process.env.RESEND_API_KEY;
+  if (!alertEmail || !resendKey) return; // silently skip if not configured
+
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
+      body: JSON.stringify({
+        from: "PromptPulse Alerts <onboarding@resend.dev>",
+        to: alertEmail,
+        subject: `⚠️ PromptPulse spike: ${count} free requests in 1 min`,
+        html: `<p><strong>Spike detected on /improve-free</strong></p>
+               <p>${count} requests in the last 60 seconds — possible bot abuse.</p>
+               <p>Check Railway logs and consider rotating your Anthropic key if costs are climbing.</p>
+               <p><small>${new Date().toISOString()}</small></p>`,
+      }),
+    });
+    console.log(`[spike-alert] Email sent — ${count} req/min`);
+  } catch (e) {
+    console.error("[spike-alert] Failed to send email:", e.message);
+  }
+}
+
+function trackFreeRequest() {
+  const now = Date.now();
+  spikeTimestamps.push(now);
+  // Keep only timestamps within the rolling window
+  spikeTimestamps = spikeTimestamps.filter(t => now - t < SPIKE_WINDOW_MS);
+
+  if (spikeTimestamps.length >= SPIKE_THRESHOLD && now - lastAlertAt > SPIKE_COOLDOWN_MS) {
+    lastAlertAt = now;
+    sendSpikeAlert(spikeTimestamps.length);
+  }
+}
+
+// ─────────────────────────────────────────────
+// 7. REST API
 // ─────────────────────────────────────────────
 
 const app = express();
@@ -208,6 +256,9 @@ app.post("/improve-free", globalFreeLimiter, async (req, res) => {
 
   const parsed = FreeRequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
+
+  // Track for spike detection
+  trackFreeRequest();
 
   // Enforce per-install limit if install_id is present (new extension versions)
   // Old extension versions without install_id are allowed through (backward compat)
