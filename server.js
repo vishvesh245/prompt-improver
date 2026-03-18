@@ -183,13 +183,19 @@ app.post("/improve", async (req, res) => {
 });
 
 // Free tier endpoint — uses server's own API key (for Chrome extension)
-// Free limiter removed — extension already enforces 5-analysis lifetime limit client-side
+const freeLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 5,                          // 5 requests per IP per day (matches extension free limit)
+  message: { error: "Free tier limit reached. Add your own API key to continue." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const FreeRequestSchema = z.object({
   prompt: z.string().min(5, "Prompt must be at least 5 characters").max(4000, "Prompt exceeds 4000 character limit"),
 });
 
-app.post("/improve-free", async (req, res) => {
+app.post("/improve-free", freeLimiter, async (req, res) => {
   const serverKey = process.env.ANTHROPIC_API_KEY;
   if (!serverKey) return res.status(503).json({ error: "Free tier is not configured on this server." });
 
