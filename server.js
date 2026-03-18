@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // ─────────────────────────────────────────────
 
 const PROVIDERS = {
-  anthropic: { label: "Anthropic", defaultModel: "claude-haiku-4-5-20251001", keyPrefix: "sk-ant-" },
+  anthropic: { label: "Anthropic", defaultModel: "claude-3-5-haiku-20241022", keyPrefix: "sk-ant-" },
   openai:    { label: "OpenAI",    defaultModel: "gpt-4o-mini",               keyPrefix: "sk-"     },
   google:    { label: "Google",    defaultModel: "gemini-2.0-flash",           keyPrefix: "AIza"    },
 };
@@ -225,7 +225,7 @@ app.post("/improve-free", globalFreeLimiter, async (req, res) => {
       prompt: parsed.data.prompt,
       apiKey: serverKey,
       provider: "anthropic",
-      model: "claude-haiku-4-5-20251001",  // cheapest model for free tier
+      model: "claude-3-5-haiku-20241022",  // cheapest model for free tier
     });
     return res.json({ success: true, data: result });
   } catch (err) {
