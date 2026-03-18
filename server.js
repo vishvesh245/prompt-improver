@@ -191,7 +191,7 @@ const FREE_TIER_LIMIT = 5;
 // Global safety net — prevent bot abuse even without a valid install_id
 const globalFreeLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 100,            // max 100 req/min globally across all free users
+  max: 50,             // max 50 req/min globally across all free users
   message: { error: "Server is busy. Please try again shortly." },
   standardHeaders: true,
   legacyHeaders: false,
