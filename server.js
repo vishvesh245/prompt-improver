@@ -204,28 +204,6 @@ app.use("/improve", limiter);
 
 app.get("/health", (_, res) => res.json({ status: "ok", providers: Object.keys(PROVIDERS) }));
 
-// Temporary test endpoint — remove after confirming alerts work
-app.get("/test-alert", async (_, res) => {
-  const alertEmail = process.env.ALERT_EMAIL;
-  const resendKey  = process.env.RESEND_API_KEY;
-  if (!alertEmail || !resendKey) return res.json({ error: "ALERT_EMAIL or RESEND_API_KEY not set in env vars" });
-  try {
-    const r = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendKey}` },
-      body: JSON.stringify({
-        from: "PromptPulse Alerts <onboarding@resend.dev>",
-        to: alertEmail,
-        subject: "✅ PromptPulse alert test — it's working!",
-        html: "<p>This is a test email from PromptPulse. Your spike alerts are configured correctly!</p>",
-      }),
-    });
-    const data = await r.json();
-    return res.json({ status: r.status, resend_response: data, alert_email: alertEmail });
-  } catch (e) {
-    return res.json({ error: e.message });
-  }
-});
 app.get("/models", (_, res) => res.json({ providers: PROVIDERS }));
 
 // ── Remote config (change without extension update) ──
