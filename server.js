@@ -209,14 +209,16 @@ app.post("/improve-free", globalFreeLimiter, async (req, res) => {
   const parsed = FreeRequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
 
-  // Enforce per-install limit
+  // Enforce per-install limit if install_id is present (new extension versions)
+  // Old extension versions without install_id are allowed through (backward compat)
   const installId = parsed.data.install_id;
-  if (!installId) return res.status(400).json({ error: "Missing install ID." });
-  const used = freeUsageMap.get(installId) || 0;
-  if (used >= FREE_TIER_LIMIT) {
-    return res.status(429).json({ error: "Free tier limit reached. Add your own API key to continue." });
+  if (installId) {
+    const used = freeUsageMap.get(installId) || 0;
+    if (used >= FREE_TIER_LIMIT) {
+      return res.status(429).json({ error: "Free tier limit reached. Add your own API key to continue." });
+    }
+    freeUsageMap.set(installId, used + 1);
   }
-  freeUsageMap.set(installId, used + 1);
 
   try {
     const result = await improvePrompt({
