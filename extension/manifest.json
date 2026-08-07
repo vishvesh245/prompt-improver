@@ -5,7 +5,7 @@
   "description": "Instantly score and improve your AI prompts — works on ChatGPT, Claude, and Gemini. Like Grammarly, but for prompts.",
   "permissions": ["storage"],
   "host_permissions": [
-    "https://prompt-improver-production.up.railway.app/*"
+    "https://prompt-improver-nine.vercel.app/*"
   ],
   "action": {
     "default_popup": "popup.html",

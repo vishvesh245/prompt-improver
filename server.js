@@ -21,7 +21,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // ─────────────────────────────────────────────
 
 const PROVIDERS = {
-  anthropic: { label: "Anthropic", defaultModel: "claude-3-haiku-20240307", keyPrefix: "sk-ant-" },
+  anthropic: { label: "Anthropic", defaultModel: "claude-haiku-4-5", keyPrefix: "sk-ant-" },
   openai:    { label: "OpenAI",    defaultModel: "gpt-4o-mini",               keyPrefix: "sk-"     },
   google:    { label: "Google",    defaultModel: "gemini-2.0-flash",           keyPrefix: "AIza"    },
 };
@@ -277,7 +277,7 @@ app.post("/improve-free", globalFreeLimiter, async (req, res) => {
       prompt: parsed.data.prompt,
       apiKey: serverKey,
       provider: "anthropic",
-      model: "claude-3-haiku-20240307",  // cheapest model for free tier
+      model: "claude-haiku-4-5",  // cheapest model for free tier
     });
     return res.json({ success: true, data: result });
   } catch (err) {
@@ -292,7 +292,10 @@ app.post("/improve-free", globalFreeLimiter, async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`REST API → http://localhost:${PORT}`));
+// On Vercel the platform invokes the exported app; only listen when running locally/Railway
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`REST API → http://localhost:${PORT}`));
+}
 
 // ─────────────────────────────────────────────
 // 7. MCP SERVER
@@ -379,3 +382,8 @@ if (process.argv.includes("--mcp")) {
   await mcpServer.connect(transport);
   console.error("MCP server running via stdio");
 }
+
+// TECH DEBT: rate limiters, freeUsageMap, and spike detector are in-memory —
+// on Vercel serverless each instance has its own copy, so limits are per-instance
+// and reset on cold starts. Fine for prototype scale; move to KV if this matters.
+export default app;

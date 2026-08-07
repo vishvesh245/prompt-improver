@@ -2,7 +2,7 @@
 // PromptPulse — Background Service Worker
 // =============================================
 
-const API_BASE = "https://prompt-improver-production.up.railway.app";
+const API_BASE = "https://prompt-improver-nine.vercel.app";
 const DEFAULT_FREE_LIMIT = 5; // fallback if server is unreachable
 
 let FREE_LIMIT = DEFAULT_FREE_LIMIT;

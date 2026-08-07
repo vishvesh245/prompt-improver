@@ -60,7 +60,7 @@ Analyzes and improves AI prompts on ChatGPT, Claude, and Gemini chat interfaces.
 | Host: `claude.ai/*` | Injects prompt analysis badge and popup UI into Claude chat |
 | Host: `chat.openai.com/*`, `chatgpt.com/*` | Injects prompt analysis badge and popup UI into ChatGPT chat |
 | Host: `gemini.google.com/*` | Injects prompt analysis badge and popup UI into Gemini chat |
-| Host: `prompt-improver-production.up.railway.app/*` | Backend API that forwards prompts to AI providers for analysis |
+| Host: `prompt-improver-nine.vercel.app/*` | Backend API that forwards prompts to AI providers for analysis |
 
 ---
 
