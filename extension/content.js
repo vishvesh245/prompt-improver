@@ -149,6 +149,7 @@
     if (platform === "chatgpt") {
       return document.querySelector('#prompt-textarea') ||
              document.querySelector('div[id="prompt-textarea"]') ||
+             document.querySelector('textarea[name="prompt"]') ||
              document.querySelector('textarea[data-id]') ||
              document.querySelector('div[contenteditable="true"][data-placeholder]');
     }
@@ -672,7 +673,8 @@
     `;
     popup.querySelector("#pi-popup-close").addEventListener("click", (e) => { e.stopPropagation(); closePopup(); });
 
-    const inputEl = findInputElement();
+    // Prefer the element the badge is attached to — selectors break when sites change their DOM
+    const inputEl = (activeInputEl && document.body.contains(activeInputEl)) ? activeInputEl : findInputElement();
     const text = getInputText(inputEl);
 
     // If same prompt text was already analyzed, reuse cached result (no API call)
@@ -788,7 +790,7 @@
     popup.querySelector("#pi-keep-btn").addEventListener("click", (e) => { e.stopPropagation(); closePopup(); });
     popup.querySelector("#pi-use-btn").addEventListener("click", (e) => {
       e.stopPropagation();
-      const inputEl = findInputElement();
+      const inputEl = (activeInputEl && document.body.contains(activeInputEl)) ? activeInputEl : findInputElement();
       const origScore = data.score || currentScore;
       const improvedScore = data.improved_score || Math.max(HIGH_SCORE, quickScore(data.improved || ""));
       if (inputEl && data.improved) {

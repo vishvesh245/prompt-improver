@@ -73,7 +73,10 @@ async function callImproveAPI(prompt, apiKey, provider) {
     body: JSON.stringify({ prompt, api_key: apiKey, provider }),
     signal: AbortSignal.timeout(30000),
   });
-  if (!res.ok) throw new Error(`Server error (${res.status}) — please try again`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Server error (${res.status}) — please try again`);
+  }
   const json = await res.json();
   if (!json.success) throw new Error(json.error || "API request failed");
   return json.data;
@@ -87,7 +90,10 @@ async function callFreeAPI(prompt) {
     body: JSON.stringify({ prompt }),
     signal: AbortSignal.timeout(30000),
   });
-  if (!res.ok) throw new Error(`Server error (${res.status}) — please try again`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Server error (${res.status}) — please try again`);
+  }
   const json = await res.json();
   if (!json.success) throw new Error(json.error || "Free API request failed");
   return json.data;

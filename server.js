@@ -223,7 +223,9 @@ app.post("/improve", async (req, res) => {
     return res.json({ success: true, data: result });
   } catch (err) {
     const status  = err?.status || 500;
+    const lowCredit = /credit balance/i.test(err?.message || "");
     const message =
+      lowCredit      ? `Your ${provider} account has insufficient credits. Add credits in your ${provider} billing settings.` :
       status === 401 ? `Invalid ${provider} API key.` :
       status === 429 ? `Your ${provider} account is rate limited.` :
       err.message || "Something went wrong.";
